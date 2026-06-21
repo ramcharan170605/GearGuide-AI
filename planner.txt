@@ -75,12 +75,15 @@
 **Phase 1 Status**: ✅ COMPLETE - All tasks passed
 
 ### Phase 2: Tools & Agent Loop (Day 1-2 - 5 hours)
-| Task ID | Task | Duration | Priority | Requirements | Dependencies |
-|---------|------|----------|----------|--------------|--------------|
-| P2-T001 | Implement tool registry pattern | 0.5h | P0 | TOOL-004, TOOL-006 | P1-T007 |
-| P2-T002 | Implement check_stock tool | 0.5h | P0 | TOOL-001, TOOL-005 | P2-T001 |
-| P2-T003 | Implement find_parts_by_vehicle tool | 1h | P0 | TOOL-003, TOOL-005 | P2-T001 |
-| P2-T004 | Implement create_order tool with validation | 1.5h | P0 | TOOL-002, TOOL-005, TOOL-007 | P2-T001 |
+| Task ID | Task | Duration | Priority | Requirements | Dependencies | Status |
+|---------|------|----------|----------|--------------|--------------|--------|
+| P2-T001 | Implement tool registry pattern | 0.5h | P0 | TOOL-004, TOOL-006 | P1-T007 | ✅ DONE (0.5h) |
+| P2-T002 | Implement check_stock tool | 0.5h | P0 | TOOL-001, TOOL-005 | P2-T001 | ✅ DONE (0.5h) |
+| P2-T003 | Implement find_parts_by_vehicle tool | 1h | P0 | TOOL-003, TOOL-005 | P2-T001 | ✅ DONE (0.5h) |
+| P2-T004 | Implement create_order tool with validation | 1.5h | P0 | TOOL-002, TOOL-005, TOOL-007 | P2-T001 | ✅ DONE (0.5h) |
+| P2-T005 | Implement agent loop with conversation memory | 1.5h | P0 | CONV-001, CONV-002 | P2-T004 | ✅ DONE (1h) |
+| P2-T006 | Implement clarification logic | 1h | P0 | CONV-003, CONV-004 | P2-T005 | ✅ DONE (0.5h) |
+| P2-T007 | Implement tool calling decision logic | 1h | P0 | TOOL-004, TOOL-006 | P2-T005 | ✅ DONE (0.5h) |
 | P2-T005 | Implement agent loop with conversation memory | 1.5h | P0 | CONV-001, CONV-002 | P2-T004 |
 | P2-T006 | Implement clarification logic | 1h | P0 | CONV-003, CONV-004 | P2-T005 |
 | P2-T007 | Implement tool calling decision logic | 1h | P0 | TOOL-004, TOOL-006 | P2-T005 |
