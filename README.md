@@ -1,15 +1,17 @@
-# VIKMO AI/ML Intern Assignment - Dealer Assistant
+# GearGuide-AI - Dealer Assistant
 
 > **Status**: Implementation Complete - Phase 5
 > **Last Updated**: 2026-06-21
 
 ## 1. Overview
 
-This repository contains the implementation of the VIKMO AI/ML Intern Take-Home Assignment, featuring a **conversational Dealer Assistant** with Retrieval-Augmented Generation (RAG), tool-calling, and evaluation framework.
+This repository contains the implementation of the GearGuide-AI Dealer Assistant, featuring a **conversational assistant** with Retrieval-Augmented Generation (RAG), tool-calling, and evaluation framework.
+
+> **Originally**: VIKMO AI/ML Intern Take-Home Assignment
 
 ### What Was Implemented
 
-#### Part A - Dealer Assistant (Core - 100 points)
+#### GearGuide-AI - Dealer Assistant (Core - 100 points)
 - ✅ **Retrieval System**: Semantic search over 600-product catalogue using sentence-transformers and FAISS
 - ✅ **Tool Calling**: Three required tools with structured output (Pydantic models)
   - `check_stock`: Look up product availability by SKU
@@ -97,7 +99,8 @@ python -m assistant.cli
 # Assistant: Brake Pad Set — Royal Enfield Meteor 350 (SKU: BRK-1007) - ₹530, Stock: 474, Status: In Stock
 # User: Place an order for 5 units of BRK-1007 for ABC Motors
 # Assistant: Order ORD-ABC1234 for ABC Motors - Total: ₹2650
-#         Items: - BRK-1007: 5
+#         Items:
+#   - BRK-1007: 5
 # User: What's the weather today?
 # Assistant: I'm sorry, I can only help with auto parts, stock, and orders.
 ```
@@ -132,7 +135,7 @@ print(response)
 # Run the full evaluation suite
 python eval/run_eval.py
 
-# Expected output:
+# Expected output for GearGuide-AI:
 # ======================================================================
 # EVALUATION RESULTS
 # ======================================================================
@@ -237,12 +240,12 @@ For detailed design decisions, see [DESIGN.md](DESIGN.md).
 ## 8. Project Structure
 
 ```
-.
+GearGuide-AI/
 ├── README.md                    # This file
 ├── DESIGN.md                    # Design decisions and methodology
 ├── requirements.txt             # Python dependencies
 ├── planner.txt                  # Implementation plan and progress
-├── ASSIGNMENT_ANALYSIS.md       # Comprehensive analysis of assignment
+├── ASSIGNMENT_ANALYSIS.md       # Comprehensive analysis
 ├── REQUIREMENTS.md              # Formal requirements specification
 ├── catalogue.csv                # Product catalogue (600 SKUs)
 ├── catalogue.json               # Product catalogue (JSON format)
@@ -315,5 +318,6 @@ For questions about the implementation, refer to:
 ---
 
 **Implementation Status**: ✅ Complete and Ready for Submission
-**Last Commit**: Phase 4 - Evaluation System Complete (100% Pass Rate)
+**Project**: GearGuide-AI
+**Last Commit**: Phase 5 - Documentation Complete
 **Next Steps**: Push to public GitHub repository

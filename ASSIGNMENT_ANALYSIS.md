@@ -1,8 +1,8 @@
-# VIKMO AI/ML Intern Assignment - Analysis
+# GearGuide-AI - Assignment Analysis
 
 ## Executive Summary
 
-This take-home assignment evaluates **Applied GenAI judgment** and **classical ML methodology** through two parts:
+This take-home assignment (originally VIKMO AI/ML Intern Assignment) evaluates **Applied GenAI judgment** and **classical ML methodology** through two parts:
 - **Part A (Core - 100 points)**: Build a conversational LLM-powered Dealer Assistant with RAG, tool-calling, and evaluation
 - **Part B (Bonus - +15-20 points)**: Demand forecasting with leakage-free validation
 

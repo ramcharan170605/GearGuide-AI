@@ -1,4 +1,4 @@
-# VIKMO AI/ML Intern Assignment - Planning Summary
+# GearGuide-AI - Planning Summary
 
 ## ✅ Planning Complete
 
