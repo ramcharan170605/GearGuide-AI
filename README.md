@@ -1,32 +1,47 @@
 # GearGuide-AI - Dealer Assistant
-
-> **Status**: Implementation Complete - Phase 5
 > **Last Updated**: 2026-06-21
 
-## 1. Overview
+## How to Use the UI
+
+The application provides a Streamlit-based web interface for easy interaction with the GearGuide-AI Dealer Assistant.
+
+### Launch the UI
+
+```bash
+# Install dependencies (if not already installed)
+pip install -r requirements.txt
+
+# Run the Streamlit interface
+streamlit run app.py
+```
+
+The application will open in your default web browser at `http://localhost:8501`.
+
+### Using the Interface
+
+1. **Enter your query** in the chat input box at the bottom of the page
+2. **Send your message** by pressing Enter or clicking the send button
+3. **View responses** in the chat history above
+4. **Clear the conversation** using the clear button to start fresh
+
+## Overview
 
 This repository contains the implementation of the GearGuide-AI Dealer Assistant, featuring a **conversational assistant** with Retrieval-Augmented Generation (RAG), tool-calling, and evaluation framework.
 
 > **Originally**: VIKMO AI/ML Intern Take-Home Assignment
 
-### What Was Implemented
+### Features
 
-#### GearGuide-AI - Dealer Assistant (Core - 100 points)
-- ✅ **Retrieval System**: Semantic search over 600-product catalogue using sentence-transformers and FAISS
-- ✅ **Tool Calling**: Three required tools with structured output (Pydantic models)
+- **Retrieval System**: Semantic search over 600-product catalogue using sentence-transformers and FAISS
+- **Tool Calling**: Three tools with structured output (Pydantic models)
   - `check_stock`: Look up product availability by SKU
   - `find_parts_by_vehicle`: Find parts by make/model/year
   - `create_order`: Place orders with validation
-- ✅ **Conversation Handling**: Multi-turn dialogue with context, clarification questions
-- ✅ **Grounding**: All responses grounded in catalogue data, no hallucinations
-- ✅ **Guardrails**: Off-topic query detection with polite decline (Bonus +5 points)
-- ✅ **Evaluation**: 25 test cases with 100% pass rate
+- **Conversation Handling**: Multi-turn dialogue with context, clarification questions
+- **Grounding**: All responses grounded in catalogue data, no hallucinations
+- **Guardrails**: Off-topic query detection with polite decline
 
-#### Part B - Demand Forecasting (Bonus - Not Implemented)
-- Status: Not attempted (focused on core Part A quality)
-- Reason: Core Part A with evaluation carries 100 points; Part B is bonus
-
-## 2. Tech Stack
+## Tech Stack
 
 | Component | Technology | Version | Justification |
 |-----------|-------------|---------|---------------|
@@ -44,7 +59,7 @@ This repository contains the implementation of the GearGuide-AI Dealer Assistant
 - **Pydantic**: Ensures structured, validated output as required
 - **Google Gemini**: Free tier available, mirrors VIKMO's actual stack
 
-## 3. Setup
+## Setup
 
 ### Prerequisites
 - Python 3.10+
@@ -60,7 +75,7 @@ cd VIKMO-AI-ML-Intern-Assignment
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -82,30 +97,76 @@ OLLAMA_BASE_URL=http://localhost:11434
 ```
 
 ### Note on API Keys
-- **No hardcoded API keys** are present in the codebase (requirement SUB-006)
+- **No hardcoded API keys** are present in the codebase
 - The system will prompt you if no API key is found
 - For testing purposes, the retrieval system works without an LLM API key
 
-## 4. Running the Assistant
+## Running the Assistant
 
 ### CLI Interface
 
 ```bash
 # Run the interactive CLI
 python -m assistant.cli
-
-# Example session:
-# User: What is the stock of BRK-1007?
-# Assistant: Brake Pad Set — Royal Enfield Meteor 350 (SKU: BRK-1007) - ₹530, Stock: 474, Status: In Stock
-# User: Place an order for 5 units of BRK-1007 for ABC Motors
-# Assistant: Order ORD-ABC1234 for ABC Motors - Total: ₹2650
-#         Items:
-#   - BRK-1007: 5
-# User: What's the weather today?
-# Assistant: I'm sorry, I can only help with auto parts, stock, and orders.
 ```
 
-### Direct Python Usage
+### Streamlit Web Interface
+
+```bash
+# Run the Streamlit UI
+streamlit run app.py
+```
+
+### Testing the Application
+
+To verify the application is working correctly:
+
+```bash
+# Run the evaluation suite
+python eval/run_eval.py
+```
+
+This will execute 25 test cases covering various scenarios including stock checks, vehicle part lookups, order creation, clarification handling, and guardrail detection.
+
+## Example Queries
+
+Here are some example queries you can try with the assistant:
+
+### Stock Check
+- "What is the stock of BRK-1007?"
+- "Check availability for CHN-1001"
+- "How many units of BDY-1058 are in stock?"
+- "Is BRK-1007 available?"
+
+### Vehicle Parts
+- "Find parts for Bajaj Pulsar 150"
+- "Show me accessories for Royal Enfield Meteor 350"
+- "What parts fit a Bajaj Pulsar 150?"
+- "List products for Royal Enfield"
+
+### Order Creation
+- "Place an order for 5 units of BRK-1007 for ABC Motors"
+- "Create an order for 10 CHN-1001 to XYZ Auto"
+- "I want to order 3 BDY-1017 for my store"
+- "Can I place an order for 2 units of BRK-1007?"
+
+### General Information
+- "What is BRK-1007?"
+- "Tell me about CHN-1001"
+- "What are the specifications for the Chain Sprocket Kit?"
+- "What does BDY-1058 do?"
+
+### Clarification Examples
+- "I need tyres" (Assistant will ask for vehicle make and model)
+- "Show me brake pads" (Assistant will ask for specific vehicle)
+- "Parts for my bike" (Assistant will request more details)
+
+### Guardrail Examples (Off-Topic)
+- "What's the weather today?"
+- "Tell me a joke"
+- "What is the capital of France?"
+
+## Direct Python Usage
 
 ```python
 import sys
@@ -129,83 +190,7 @@ response = agent.process_query("What is the stock of BRK-1007?")
 print(response)
 ```
 
-## 5. Running the Evaluation
-
-```bash
-# Run the full evaluation suite
-python eval/run_eval.py
-
-# Expected output for GearGuide-AI:
-# ======================================================================
-# EVALUATION RESULTS
-# ======================================================================
-# Timestamp: 2026-06-21TXX:XX:XX.XXXXXX
-# Total Tests: 25
-# Passed: 25
-# Failed: 0
-# Pass Rate: 100.00%
-#
-# By Category:
-#   happy_path: 10/10 (100.00%)
-#   tricky_ambiguous: 10/10 (100.00%)
-#   out_of_scope: 5/5 (100.00%)
-#
-# No failures!
-```
-
-### Evaluation Results
-
-The latest evaluation results are saved in `eval/results.json`. Current results:
-- **Total Tests**: 25
-- **Passed**: 25
-- **Failed**: 0
-- **Pass Rate**: 100%
-
-### Test Case Breakdown
-
-| Category | Tests | Passed | Pass Rate |
-|----------|-------|--------|-----------|
-| Happy Path | 10 | 10 | 100% |
-| Tricky/Ambiguous | 10 | 10 | 100% |
-| Out-of-Scope | 5 | 5 | 100% |
-
-## 6. Example Interactions
-
-### Sample 1: Stock Check
-```
-User: What is the stock of BRK-1007?
-Assistant: Brake Pad Set — Royal Enfield Meteor 350 (SKU: BRK-1007) - ₹530, Stock: 474, Status: In Stock
-```
-
-### Sample 2: Vehicle Parts
-```
-User: Find parts for Bajaj Pulsar 150
-Assistant: Matching products:
-1. Chain Sprocket Kit — Bajaj Pulsar 150 (SKU: CHN-1001) - ₹3225, Stock: 1
-2. Tail Tidy — Bajaj Pulsar 150 (SKU: BDY-1058) - ₹2595, Stock: 449
-3. Crash Guard — Bajaj Pulsar 150 (SKU: BDY-1017) - ₹1865, Stock: 160
-```
-
-### Sample 3: Order Creation
-```
-User: Place an order for 5 units of BRK-1007 for ABC Motors
-Assistant: Order ORD-ABC1234 for ABC Motors - Total: ₹2650
-        Items: - BRK-1007: 5
-```
-
-### Sample 4: Clarification
-```
-User: I need tyres
-Assistant: Which vehicle? Please specify make and model (e.g., 'Bajaj Pulsar 150').
-```
-
-### Sample 5: Guardrail (Off-Topic)
-```
-User: What's the weather today?
-Assistant: I'm sorry, I can only help with auto parts, stock, and orders. Is there something related to auto parts I can help you with?
-```
-
-## 7. Assumptions
+## Assumptions
 
 ### Data Assumptions
 1. **Catalogue**: 600 products with fields: sku, name, category, brand, vehicle_fitment, price_inr, stock, description
@@ -232,47 +217,47 @@ Assistant: I'm sorry, I can only help with auto parts, stock, and orders. Is the
    - Trade-off: Less flexible for novel query formats
 2. **Single-Turn Clarification**: Clarification questions don't maintain multi-turn context
    - Future: Add conversation memory for multi-turn clarification
-3. **No Image Support**: Multimodal feature (bonus +5) not implemented
+3. **No Image Support**: Multimodal feature not implemented
    - Future: Add image recognition for part identification
 
 For detailed design decisions, see [DESIGN.md](DESIGN.md).
 
-## 8. Project Structure
+## Project Structure
 
 ```
 GearGuide-AI/
-├── README.md                    # This file
-├── DESIGN.md                    # Design decisions and methodology
-├── requirements.txt             # Python dependencies
-├── planner.txt                  # Implementation plan and progress
-├── ASSIGNMENT_ANALYSIS.md       # Comprehensive analysis
-├── REQUIREMENTS.md              # Formal requirements specification
-├── catalogue.csv                # Product catalogue (600 SKUs)
-├── catalogue.json               # Product catalogue (JSON format)
-├── sales_history.csv            # Sales data (for Part B)
-├── DATA_README.md               # Data documentation
+├── README.md # This file
+├── DESIGN.md # Design decisions and methodology
+├── requirements.txt # Python dependencies
+├── planner.txt # Implementation plan and progress
+├── ASSIGNMENT_ANALYSIS.md # Comprehensive analysis
+├── REQUIREMENTS.md # Formal requirements specification
+├── catalogue.csv # Product catalogue (600 SKUs)
+├── catalogue.json # Product catalogue (JSON format)
+├── sales_history.csv # Sales data
+├── DATA_README.md # Data documentation
 │
 ├── assistant/
-│   ├── __init__.py
-│   ├── retrieval.py            # RAG system with FAISS
-│   ├── tools.py                # Tool implementations
-│   ├── agent.py                # Agent loop and conversation
-│   └── cli.py                  # Command-line interface
+│ ├── __init__.py
+│ ├── retrieval.py # RAG system with FAISS
+│ ├── tools.py # Tool implementations
+│ ├── agent.py # Agent loop and conversation
+│ └── cli.py # Command-line interface
 │
 ├── eval/
-│   ├── __init__.py
-│   ├── eval_set.jsonl           # Evaluation test cases (25 tests)
-│   ├── run_eval.py             # Evaluation runner
-│   └── results.json            # Latest evaluation results
+│ ├── __init__.py
+│ ├── eval_set.jsonl # Evaluation test cases
+│ ├── run_eval.py # Evaluation runner
+│ └── results.json # Latest evaluation results
 │
 └── forecasting/
-    ├── __init__.py
-    ├── forecast.py             # Forecasting model (placeholder)
-    ├── baseline.py             # Baseline model (placeholder)
-    └── results.json            # Forecasting results (placeholder)
+ ├── __init__.py
+ ├── forecast.py # Forecasting model (placeholder)
+ ├── baseline.py # Baseline model (placeholder)
+ └── results.json # Forecasting results (placeholder)
 ```
 
-## 9. Compliance Checklist
+## Compliance Checklist
 
 - [x] **SUB-001**: Code pushed to public GitHub repository
 - [x] **SUB-002**: README and DESIGN.md complete and clear
@@ -281,33 +266,18 @@ GearGuide-AI/
 - [ ] **SUB-005**: If attempted, forecasting code and results included (Not attempted - Part B is bonus)
 - [x] **SUB-006**: No hardcoded API keys or secrets
 
-## 10. Scoring Summary
+## Future Enhancements
 
-| Category | Points | Status |
-|----------|--------|--------|
-| Retrieval / RAG | 20 | ✅ 100% |
-| Agent & Tool-Calling | 25 | ✅ 100% |
-| Conversation Handling | 10 | ✅ 100% |
-| Evaluation & Failure Analysis | 20 | ✅ 100% |
-| Code Quality | 10 | ✅ ~90% |
-| DESIGN.md & Documentation | 15 | ✅ ~90% |
-| **Core Total** | **100** | ✅ **100%** |
-| Guardrails (Bonus) | +5 | ✅ 100% |
-| **Total with Bonuses** | **105** | ✅ **80.7%** |
-
-## 11. Future Enhancements
-
-### Immediate (For Technical Round)
+### Immediate
 1. Add LLM integration for more natural responses
 2. Implement multi-turn conversation context
 3. Add more comprehensive guardrails
 
-### Bonus Features (If Time Permits)
-1. **Chat/WhatsApp-style UI** (+5 points): Web interface using Streamlit or Flask
-2. **Multimodal Image Recognition** (+5 points): Identify parts from images using vision model
-3. **Part B - Demand Forecasting** (+15-20 points): Implement time-series forecasting
+### Bonus Features
+1. **Multimodal Image Recognition**: Identify parts from images using vision model
+2. **Part B - Demand Forecasting**: Implement time-series forecasting
 
-## 12. Contact and Questions
+## Contact and Questions
 
 For questions about the implementation, refer to:
 - [DESIGN.md](DESIGN.md) - Design decisions and reasoning
@@ -317,7 +287,5 @@ For questions about the implementation, refer to:
 
 ---
 
-**Implementation Status**: ✅ Complete and Ready for Submission
 **Project**: GearGuide-AI
-**Last Commit**: Phase 5 - Documentation Complete
-**Next Steps**: Push to public GitHub repository
+**Last Commit**: Documentation Complete
