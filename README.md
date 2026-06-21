@@ -26,9 +26,7 @@ The application will open in your default web browser at `http://localhost:8501`
 
 ## Overview
 
-This repository contains the implementation of the GearGuide-AI Dealer Assistant, featuring a **conversational assistant** with Retrieval-Augmented Generation (RAG), tool-calling, and evaluation framework.
-
-> **Originally**: VIKMO AI/ML Intern Take-Home Assignment
+This repository contains the implementation of the GearGuide-AI Dealer Assistant, featuring a **conversational assistant** with Retrieval-Augmented Generation (RAG), tool-calling, and pattern-based intent detection.
 
 ### Features
 
@@ -50,14 +48,12 @@ This repository contains the implementation of the GearGuide-AI Dealer Assistant
 | **Vector Store** | FAISS | 1.7.0+ | Efficient, in-memory, no dependencies |
 | **Validation** | Pydantic | 2.5.0+ | Structured output validation |
 | **Data Processing** | Pandas | 2.0.0+ | Data loading and manipulation |
-| **LLM Provider** | Google Gemini (Free Tier) | - | Recommended, mirrors VIKMO's stack |
 
 ### Why These Choices
 
 - **sentence-transformers**: Free, open-source, no API costs, reproducible
 - **FAISS**: Scales to millions of vectors, pure Python/C++ with numpy
 - **Pydantic**: Ensures structured, validated output as required
-- **Google Gemini**: Free tier available, mirrors VIKMO's actual stack
 
 ## Setup
 
@@ -80,26 +76,6 @@ source venv/bin/activate # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 ```
-
-### Environment Variables
-
-Create a `.env` file in the project root:
-
-```bash
-# Google Gemini (recommended)
-GEMINI_API_KEY=your_api_key_here
-
-# Alternative: OpenAI
-OPENAI_API_KEY=your_api_key_here
-
-# Alternative: Ollama (local)
-OLLAMA_BASE_URL=http://localhost:11434
-```
-
-### Note on API Keys
-- **No hardcoded API keys** are present in the codebase
-- The system will prompt you if no API key is found
-- For testing purposes, the retrieval system works without an LLM API key
 
 ## Running the Assistant
 
@@ -166,6 +142,35 @@ Here are some example queries you can try with the assistant:
 - "Tell me a joke"
 - "What is the capital of France?"
 
+## Implementation Details
+
+### Retrieval System
+The assistant uses a RAG (Retrieval-Augmented Generation) approach with:
+- **sentence-transformers** (all-MiniLM-L6-v2) for generating 384-dimensional embeddings
+- **FAISS** (Facebook AI Similarity Search) for efficient vector similarity search
+- **Cosine similarity** for matching queries to catalogue products
+- **Confidence threshold** of 0.7 (bypassed for direct SKU lookups)
+
+### Intent Detection
+The system uses **pattern-based matching** to detect user intent:
+- SKU patterns trigger `check_stock` tool
+- "for [make] [model]" patterns trigger `find_parts_by_vehicle` tool
+- "order", "place order", "create order" patterns trigger `create_order` tool
+- Short or ambiguous queries trigger clarification requests
+- Off-topic queries are detected and politely declined
+
+### Tool System
+Three tools are available with structured Pydantic models:
+- **check_stock**: Retrieves product details by SKU including name, price, stock, and status
+- **find_parts_by_vehicle**: Searches catalogue for products matching vehicle make/model
+- **create_order**: Validates and creates orders with customer name and quantities
+
+### Conversation Handling
+- Maintains context for multi-turn dialogues
+- Requests clarification for ambiguous queries
+- Grounds all responses in actual catalogue data
+- Provides structured, consistent output formats
+
 ## Direct Python Usage
 
 ```python
@@ -212,13 +217,12 @@ print(response)
 3. **Confidence Threshold**: 0.7 for semantic similarity (bypassed for SKU queries)
 
 ### Limitations
-1. **No LLM Integration**: Current implementation uses pattern matching instead of LLM for intent detection
-   - Reason: Ensures deterministic, testable behavior
+1. **Pattern-Based Intent Detection**: Uses regex and keyword matching instead of LLM for intent detection
+   - Ensures deterministic, testable behavior
    - Trade-off: Less flexible for novel query formats
 2. **Single-Turn Clarification**: Clarification questions don't maintain multi-turn context
    - Future: Add conversation memory for multi-turn clarification
 3. **No Image Support**: Multimodal feature not implemented
-   - Future: Add image recognition for part identification
 
 For detailed design decisions, see [DESIGN.md](DESIGN.md).
 
@@ -229,9 +233,6 @@ GearGuide-AI/
 ├── README.md # This file
 ├── DESIGN.md # Design decisions and methodology
 ├── requirements.txt # Python dependencies
-├── planner.txt # Implementation plan and progress
-├── ASSIGNMENT_ANALYSIS.md # Comprehensive analysis
-├── REQUIREMENTS.md # Formal requirements specification
 ├── catalogue.csv # Product catalogue (600 SKUs)
 ├── catalogue.json # Product catalogue (JSON format)
 ├── sales_history.csv # Sales data
@@ -269,9 +270,8 @@ GearGuide-AI/
 ## Future Enhancements
 
 ### Immediate
-1. Add LLM integration for more natural responses
-2. Implement multi-turn conversation context
-3. Add more comprehensive guardrails
+1. Add conversation memory for multi-turn context
+2. Add more comprehensive guardrails
 
 ### Bonus Features
 1. **Multimodal Image Recognition**: Identify parts from images using vision model
@@ -281,9 +281,6 @@ GearGuide-AI/
 
 For questions about the implementation, refer to:
 - [DESIGN.md](DESIGN.md) - Design decisions and reasoning
-- [planner.txt](planner.txt) - Implementation plan and progress
-- [REQUIREMENTS.md](REQUIREMENTS.md) - Formal requirements specification
-- [ASSIGNMENT_ANALYSIS.md](ASSIGNMENT_ANALYSIS.md) - Comprehensive analysis
 
 ---
 
