@@ -6,7 +6,8 @@
 The application provides a Streamlit-based web interface for easy interaction with the GearGuide-AI Dealer Assistant.
 
 ### Launch the UI
-
+> **Note:** Initial setup typically takes 3–8 minutes depending on internet speed, and the first launch may take slightly longer as the `all-MiniLM-L6-v2` embedding model is automatically downloaded and cached locally.
+> 
 ```bash
 # Install dependencies (if not already installed)
 pip install -r requirements.txt
