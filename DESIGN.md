@@ -21,7 +21,6 @@ This document explains the key design decisions for the VIKMO AI/ML Intern Assig
 ## 2. Part A - Dealer Assistant
 
 ### 2.1 Retrieval Approach
-*To be populated after P1-T007*
 
 **Embedding Model**: 
 - **Choice**: all-MiniLM-L6-v2 from sentence-transformers

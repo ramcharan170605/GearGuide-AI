@@ -13,7 +13,7 @@ The application provides a Streamlit-based web interface for easy interaction wi
 pip install -r requirements.txt
 
 # Run the Streamlit interface
-streamlit run app.py
+streamlit run ui/app.py
 ```
 
 The application will open in your default web browser at `http://localhost:8501`.
@@ -91,7 +91,7 @@ python -m assistant.cli
 
 ```bash
 # Run the Streamlit UI
-streamlit run app.py
+streamlit run ui/app.py
 ```
 
 ### Testing the Application
@@ -252,11 +252,16 @@ GearGuide-AI/
 │ ├── run_eval.py # Evaluation runner
 │ └── results.json # Latest evaluation results
 │
+├── ui/
+│   ├── __init__.py
+│   ├── app.py          # Streamlit web interface
+│   └── requirements.txt # UI-specific dependencies
+│
 └── forecasting/
- ├── __init__.py
- ├── forecast.py # Forecasting model (placeholder)
- ├── baseline.py # Baseline model (placeholder)
- └── results.json # Forecasting results (placeholder)
+    ├── __init__.py
+    ├── forecast.py     # Forecasting model (placeholder)
+    ├── baseline.py     # Baseline model (placeholder)
+    └── results.json    # Forecasting results (placeholder)
 ```
 
 ## Compliance Checklist
