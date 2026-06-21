@@ -3,7 +3,10 @@ import pandas as pd
 import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add project root to Python path so 'assistant' package can be imported
+# __file__ is ui/app.py, so we need to go up one level to the project root
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
 from assistant.agent import DealerAssistant
 from assistant.retrieval import CatalogueRetriever
@@ -21,8 +24,9 @@ st.markdown("""<style>
 
 @st.cache_resource
 def get_assistant():
-    catalogue = pd.read_csv('catalogue.csv')
-    retriever = CatalogueRetriever('catalogue.csv')
+    # Use absolute paths based on project root for catalogue files
+    catalogue = pd.read_csv(os.path.join(project_root, 'catalogue.csv'))
+    retriever = CatalogueRetriever(os.path.join(project_root, 'catalogue.csv'))
     retriever.load_catalogue()
     retriever.initialize_embedding_model()
     retriever.build_vector_store()
@@ -38,7 +42,7 @@ st.markdown('<div class="header"><h1 style="color:#00d4ff;margin:0;">🚗 GearGu
 
 with st.sidebar:
     st.markdown('## ☰ Menu')
-    catalogue = pd.read_csv('catalogue.csv')
+    catalogue = pd.read_csv(os.path.join(project_root, 'catalogue.csv'))
     st.metric('Products', f'{len(catalogue):,}')
     st.metric('Categories', catalogue['category'].nunique())
     st.metric('In Stock', f'{catalogue[catalogue["stock"] > 0].shape[0]:,}')

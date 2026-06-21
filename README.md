@@ -6,12 +6,10 @@
 The application provides a Streamlit-based web interface for easy interaction with the GearGuide-AI Dealer Assistant.
 
 ### Launch the UI
-> **Note:** Initial setup typically takes 3–8 minutes depending on internet speed, and the first launch may take slightly longer as the `all-MiniLM-L6-v2` embedding model is automatically downloaded and cached locally.
-> 
-```bash
-# Install dependencies (if not already installed)
-pip install -r requirements.txt
 
+After completing the [Installation](#installation) steps:
+
+```bash
 # Run the Streamlit interface
 streamlit run ui/app.py
 ```
@@ -74,9 +72,12 @@ cd VIKMO-AI-ML-Intern-Assignment
 python -m venv venv
 source venv/bin/activate # On Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install dependencies (both backend and UI)
 pip install -r requirements.txt
+pip install -r ui/requirements.txt
 ```
+
+> **Note**: First-time setup may take a few minutes as dependencies (including the ~80MB embedding model) are downloaded.
 
 ## Running the Assistant
 
