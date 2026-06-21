@@ -1,0 +1,3 @@
+﻿"""
+Forecasting package init
+"""

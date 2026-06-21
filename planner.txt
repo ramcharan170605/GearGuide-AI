@@ -1,0 +1,893 @@
+# VIKMO AI/ML Intern Assignment - Implementation Planner
+# =======================================================
+#
+# CRITICAL: This planner traces ALL tasks back to assignment.md via REQUIREMENTS.md.
+# Before implementing any task, verify:
+#   1. It exists in this planner
+#   2. It traces back to REQUIREMENTS.md
+#   3. It ultimately traces back to assignment.md
+#
+# Chain: assignment.md -> ASSIGNMENT_ANALYSIS.md -> REQUIREMENTS.md -> planner.txt -> Implementation
+#
+# If planner.txt conflicts with REQUIREMENTS.md: REQUIREMENTS.md wins.
+# If REQUIREMENTS.md conflicts with assignment.md: assignment.md wins.
+
+---
+
+# TABLE OF CONTENTS
+# 1. Project Overview and Timeline
+# 2. Phase Breakdown
+# 3. Task Details with Requirement Mappings
+# 4. Dependencies and Prerequisites
+# 5. Milestones and Checkpoints
+# 6. Risk Mitigation Tasks
+# 7. Bonus Tasks
+
+---
+
+## 1. PROJECT OVERVIEW AND TIMELINE
+
+### 1.1 Duration
+- Total: 3 Days (72 hours)
+- Recommended: 2.5 days for Part A, 0.5 days for Part B (bonus)
+
+### 1.2 Priority Order
+1. Part A Core (100 points) - MUST COMPLETE
+2. Documentation (DESIGN.md, README.md) - MUST COMPLETE
+3. Evaluation & Failure Analysis - MUST COMPLETE
+4. Part B Forecasting (Bonus +15-20) - IF TIME PERMITS
+5. Additional Bonuses (UI, Guardrails, Multimodal) - IF TIME PERMITS
+
+### 1.3 Success Definition
+- MINIMUM: Part A functional + eval + documentation = 100 points
+- GOOD: Above + clean code + thoughtful design = Strong 100 points
+- EXCELLENT: Above + Part B + bonuses = 115-130 points
+
+---
+
+## 2. PHASE BREAKDOWN
+
+### Phase 0: Setup and Planning (0.5 hours)
+| Task ID | Task | Duration | Priority | Status |
+|---------|------|----------|----------|--------|
+| P0-T001 | Read assignment.md thoroughly | 0.25h | P0 | DONE |
+| P0-T002 | Analyze provided data files | 0.25h | P0 | DONE |
+| P0-T003 | Create ASSIGNMENT_ANALYSIS.md | 0.5h | P0 | DONE |
+| P0-T004 | Create REQUIREMENTS.md | 0.5h | P0 | DONE |
+| P0-T005 | Create planner.txt (this file) | 0.5h | P0 | IN PROGRESS |
+
+**Phase 0 Total**: ~2 hours (including analysis time already spent)
+
+### Phase 1: Foundation - Repository & Retrieval (Day 1 - 4 hours)
+| Task ID | Task | Duration | Priority | Requirements | Dependencies | Status |
+|---------|------|----------|----------|--------------|--------------|--------|
+| P1-T001 | Set up GitHub repository | 0.5h | P0 | REPO-001 to REPO-006 | P0-T001 | ✅ DONE (0.1h) |
+| P1-T002 | Create repository structure | 0.25h | P0 | REPO-001 to REPO-006 | P1-T001 | ✅ DONE (0.25h) |
+| P1-T003 | Create requirements.txt with dependencies | 0.5h | P0 | REPO-003 | P1-T002 | ✅ DONE (0.25h) |
+| P1-T004 | Implement embedding system | 1h | P0 | RAG-001, RAG-005, RAG-006 | P1-T003 | ✅ DONE (0.5h) |
+| P1-T005 | Implement vector store (FAISS/Chroma) | 1h | P0 | RAG-001, RAG-002, RAG-006 | P1-T004 | ✅ DONE (0.5h) |
+| P1-T006 | Load and index catalogue | 0.5h | P0 | RAG-003, RAG-007 | P1-T005 | ✅ DONE (0.25h) |
+| P1-T007 | Create basic retrieval test | 0.25h | P0 | RAG-001 to RAG-007 | P1-T006 | ✅ DONE (0.25h) |
+
+**Phase 1 Total**: 4 hours
+**Phase 1 Actual Time**: ~2 hours
+**Phase 1 Exit Criteria**: ✅ Retrieval system can find products by semantic query
+**Phase 1 Status**: ✅ COMPLETE - All tasks passed
+
+### Phase 2: Tools & Agent Loop (Day 1-2 - 5 hours)
+| Task ID | Task | Duration | Priority | Requirements | Dependencies |
+|---------|------|----------|----------|--------------|--------------|
+| P2-T001 | Implement tool registry pattern | 0.5h | P0 | TOOL-004, TOOL-006 | P1-T007 |
+| P2-T002 | Implement check_stock tool | 0.5h | P0 | TOOL-001, TOOL-005 | P2-T001 |
+| P2-T003 | Implement find_parts_by_vehicle tool | 1h | P0 | TOOL-003, TOOL-005 | P2-T001 |
+| P2-T004 | Implement create_order tool with validation | 1.5h | P0 | TOOL-002, TOOL-005, TOOL-007 | P2-T001 |
+| P2-T005 | Implement agent loop with conversation memory | 1.5h | P0 | CONV-001, CONV-002 | P2-T004 |
+| P2-T006 | Implement clarification logic | 1h | P0 | CONV-003, CONV-004 | P2-T005 |
+| P2-T007 | Implement tool calling decision logic | 1h | P0 | TOOL-004, TOOL-006 | P2-T005 |
+| P2-T008 | Create CLI interface | 0.5h | P0 | UI-001 | P2-T007 |
+
+**Phase 2 Total**: 7.5 hours
+**Phase 2 Exit Criteria**: Agent can handle multi-turn conversations with tool calls
+
+### Phase 3: Grounding & Guardrails (Day 2 - 2 hours)
+| Task ID | Task | Duration | Priority | Requirements | Dependencies |
+|---------|------|----------|----------|--------------|--------------|
+| P3-T001 | Implement grounding checks | 0.5h | P0 | GROUND-001, GROUND-002 | P2-T008 |
+| P3-T002 | Implement domain detection guardrail | 0.5h | P1 | Bonus Guardrails | P3-T001 |
+| P3-T003 | Implement confidence threshold for retrieval | 0.5h | P0 | CONV-003 | P3-T001 |
+| P3-T004 | Implement response validation | 0.5h | P0 | GROUND-001, GROUND-002 | P3-T001 |
+
+**Phase 3 Total**: 2 hours
+**Phase 3 Exit Criteria**: Agent stays grounded and doesn't hallucinate
+
+### Phase 4: Evaluation System (Day 2 - 3 hours)
+| Task ID | Task | Duration | Priority | Requirements | Dependencies |
+|---------|------|----------|----------|--------------|--------------|
+| P4-T001 | Define eval set structure | 0.5h | P0 | EVAL-001 to EVAL-004 | P2-T008 |
+| P4-T002 | Create happy path test cases (10) | 1h | P0 | EVAL-002, SAMPLE-001 to SAMPLE-005 | P4-T001 |
+| P4-T003 | Create tricky/ambiguous test cases (10) | 1h | P0 | EVAL-003 | P4-T002 |
+| P4-T004 | Create out-of-scope test cases (5) | 0.5h | P0 | EVAL-004 | P4-T003 |
+| P4-T005 | Define "correct" criteria for each test | 0.5h | P0 | EVAL-005 | P4-T004 |
+| P4-T006 | Implement eval runner | 1h | P0 | EVAL-006, EVAL-007 | P4-T005 |
+| P4-T007 | Run evaluation and collect results | 0.5h | P0 | EVAL-006, EVAL-007 | P4-T006 |
+| P4-T008 | Analyze failures and document | 1h | P0 | EVAL-008 to EVAL-011 | P4-T007 |
+
+**Phase 4 Total**: 6 hours
+**Phase 4 Exit Criteria**: Eval set complete, results reported, failures analyzed
+
+### Phase 5: Documentation (Day 2-3 - 3 hours)
+| Task ID | Task | Duration | Priority | Requirements | Dependencies |
+|---------|------|----------|----------|--------------|--------------|
+| P5-T001 | Write DESIGN.md - Retrieval section | 0.5h | P0 | DESIGN-001, DESIGN-002 | P1-T007 |
+| P5-T002 | Write DESIGN.md - Tool design section | 0.5h | P0 | DESIGN-003 | P2-T008 |
+| P5-T003 | Write DESIGN.md - Prompt & guardrails | 0.5h | P0 | DESIGN-004 | P3-T004 |
+| P5-T004 | Write DESIGN.md - Evaluation methodology | 0.5h | P0 | DESIGN-005 | P4-T008 |
+| P5-T005 | Write DESIGN.md - Part B (if applicable) | 0.5h | P1 | DESIGN-006 | FC-Tasks |
+| P5-T006 | Write README.md - Overview | 0.25h | P0 | README-001 | P2-T008 |
+| P5-T007 | Write README.md - Tech stack | 0.25h | P0 | README-002 | P1-T003 |
+| P5-T008 | Write README.md - Setup instructions | 0.5h | P0 | README-003 | P1-T001 |
+| P5-T009 | Write README.md - Example interactions | 0.5h | P0 | README-004 | P4-T002 |
+| P5-T010 | Write README.md - Assumptions | 0.25h | P0 | README-005 | P5-T001 |
+| P5-T011 | Add code comments and docstrings | 0.5h | P0 | Code Quality | All |
+
+**Phase 5 Total**: 4.75 hours
+**Phase 5 Exit Criteria**: DESIGN.md and README.md complete
+
+### Phase 6: Part B - Demand Forecasting (Bonus) (Day 3 - 3 hours)
+| Task ID | Task | Duration | Priority | Requirements | Dependencies |
+|---------|------|----------|----------|--------------|--------------|
+| P6-T001 | Analyze sales history data | 0.5h | P1 | FC-012 to FC-015 | P0-T002 |
+| P6-T002 | Implement naive baseline (seasonal naive) | 0.5h | P1 | FC-006, FC-007 | P6-T001 |
+| P6-T003 | Implement forecasting model (SARIMAX/Prophet) | 1h | P1 | FC-001, FC-005 | P6-T002 |
+| P6-T004 | Implement time-series validation | 0.5h | P1 | FC-002, FC-003, FC-004 | P6-T003 |
+| P6-T005 | Run backtest and compare to baseline | 0.5h | P1 | FC-006 to FC-010 | P6-T004 |
+| P6-T006 | Document Part B in DESIGN.md | 0.5h | P1 | DESIGN-006, FC-011 | P6-T005 |
+
+**Phase 6 Total**: 3.5 hours
+**Phase 6 Exit Criteria**: Forecasting beats baseline with leakage-free validation
+
+### Phase 7: Bonus Features (Day 3 - Optional - 2 hours)
+| Task ID | Task | Duration | Priority | Requirements | Dependencies |
+|---------|------|----------|----------|--------------|--------------|
+| P7-T001 | Implement chat/WhatsApp-style UI | 1h | P1 | UI-002 (+5 bonus) | P2-T008 |
+| P7-T002 | Implement guardrails against hallucination | 0.5h | P1 | Bonus Guardrails (+5) | P3-T004 |
+| P7-T003 | Implement multimodal image recognition | 1h | P1 | Bonus Multimodal (+5) | P1-T007 |
+
+**Phase 7 Total**: 2.5 hours (optional)
+
+### Phase 8: Final Review and Polish (Day 3 - 2 hours)
+| Task ID | Task | Duration | Priority | Requirements | Dependencies |
+|---------|------|----------|----------|--------------|--------------|
+| P8-T001 | Run final evaluation | 0.5h | P0 | EVAL-006, EVAL-007 | P4-T008 |
+| P8-T002 | Verify submission checklist | 0.5h | P0 | SUB-001 to SUB-006 | All |
+| P8-T003 | Code cleanup and formatting | 0.5h | P0 | Code Quality | All |
+| P8-T004 | Final documentation review | 0.5h | P0 | DESIGN-001 to DESIGN-006, README-001 to README-005 | P5-T011 |
+| P8-T005 | Push to GitHub | 0.25h | P0 | SUB-001 | P8-T004 |
+| P8-T006 | Verify no hardcoded API keys | 0.25h | P0 | SUB-006, 2.4 | P8-T005 |
+
+**Phase 8 Total**: 2.5 hours
+
+---
+
+## 3. TASK DETAILS WITH REQUIREMENT MAPPINGS
+
+### P1-T001: Set up GitHub repository
+**Description**: Create a new public GitHub repository for the project.
+**Requirements**: REPO-001 to REPO-006 (Repository structure)
+**Deliverables**: GitHub repository URL
+**Acceptance Criteria**: Repository exists and is public
+**Priority**: P0 (Must have)
+
+### P1-T002: Create repository structure
+**Description**: Create the required directory structure.
+**Requirements**: REPO-001 to REPO-006
+**Deliverables**:
+```
+./
+├── README.md
+├── DESIGN.md
+├── requirements.txt
+├── assistant/
+│   ├── __init__.py
+│   ├── retrieval.py
+│   ├── tools.py
+│   ├── agent.py
+│   └── cli.py
+└── eval/
+    ├── eval_set.jsonl
+    ├── run_eval.py
+    └── results.json
+```
+**Acceptance Criteria**: All directories and placeholder files created
+**Priority**: P0
+
+### P1-T003: Create requirements.txt
+**Description**: Define all Python dependencies.
+**Requirements**: REPO-003
+**Dependencies**:
+- sentence-transformers (for embeddings)
+- faiss-cpu or chromadb (for vector store)
+- pydantic (for structured output validation)
+- google-generativeai or openai (LLM provider SDK)
+- python-dotenv (for environment variables)
+- pandas (for data handling)
+- numpy, scikit-learn (for utilities)
+- (Optional for Part B) statsmodels or prophet
+**Deliverables**: requirements.txt file
+**Acceptance Criteria**: All dependencies listed with versions
+**Priority**: P0
+
+### P1-T004: Implement embedding system
+**Description**: Create embedding generation using sentence-transformers.
+**Requirements**: RAG-001, RAG-005, RAG-006
+**Implementation**:
+- Use `all-MiniLM-L6-v2` or similar model
+- Create embeddings for product name, description, vehicle_fitment, category
+- Normalize embeddings
+**Deliverables**: retrieval.py with embedding functions
+**Acceptance Criteria**: Embeddings can be generated for catalogue items
+**Priority**: P0
+
+### P1-T005: Implement vector store
+**Description**: Set up FAISS or Chroma for vector search.
+**Requirements**: RAG-001, RAG-002, RAG-006
+**Implementation**:
+- Index embeddings with metadata (SKU, name, category, etc.)
+- Implement similarity search with k-NN
+- Support filtering by category/vehicle
+**Deliverables**: retrieval.py with vector store integration
+**Acceptance Criteria**: Can query and retrieve relevant products
+**Priority**: P0
+
+### P1-T006: Load and index catalogue
+**Description**: Load catalogue.csv and index all products.
+**Requirements**: RAG-003, RAG-007
+**Implementation**:
+- Parse CSV/JSON
+- Generate embeddings for each product
+- Store in vector store with all metadata
+**Deliverables**: retrieval.py with catalogue loading
+**Acceptance Criteria**: All 600 products indexed and searchable
+**Priority**: P0
+
+### P1-T007: Create basic retrieval test
+**Description**: Verify retrieval works with sample queries.
+**Requirements**: RAG-001 to RAG-007
+**Implementation**:
+- Test queries: "brake pads", "engine oil", "tyres for Bajaj Pulsar"
+- Verify relevant products returned
+**Deliverables**: test_retrieval.py or similar
+**Acceptance Criteria**: Retrieval returns relevant results
+**Priority**: P0
+
+### P2-T001: Implement tool registry
+**Description**: Create a registry pattern for tools.
+**Requirements**: TOOL-004, TOOL-006
+**Implementation**:
+- Tool base class/interface
+- Registry to store available tools
+- Schema for each tool (name, description, parameters)
+**Deliverables**: tools.py with registry
+**Acceptance Criteria**: Tools can be registered and discovered
+**Priority**: P0
+
+### P2-T002: Implement check_stock tool
+**Description**: Look up stock availability for a product.
+**Requirements**: TOOL-001, TOOL-005
+**Implementation**:
+- Input: sku (string)
+- Output: dict with sku, name, stock, in_stock (bool)
+- Validation: SKU must exist in catalogue
+**Deliverables**: tools.py with check_stock
+**Acceptance Criteria**: Returns correct stock for any SKU
+**Priority**: P0
+
+### P2-T003: Implement find_parts_by_vehicle tool
+**Description**: Find parts that fit a specific vehicle.
+**Requirements**: TOOL-003, TOOL-005
+**Implementation**:
+- Input: make (string), model (string), year (optional string)
+- Output: list of matching products
+- Match against vehicle_fitment field
+**Deliverables**: tools.py with find_parts_by_vehicle
+**Acceptance Criteria**: Returns correct parts for known vehicles
+**Priority**: P0
+
+### P2-T004: Implement create_order tool
+**Description**: Place an order with structured output.
+**Requirements**: TOOL-002, TOOL-005, TOOL-007
+**Implementation**:
+- Input: dealer (string), items (list of dicts with sku, quantity)
+- Output: dict with order_id, dealer, items, total, status
+- Validation: SKUs must exist, quantities positive integers
+- Use Pydantic for validation
+**Deliverables**: tools.py with create_order
+**Acceptance Criteria**: Creates valid order with correct structure
+**Priority**: P0
+
+### P2-T005: Implement agent loop
+**Description**: Create the main conversational agent.
+**Requirements**: CONV-001, CONV-002
+**Implementation**:
+- Maintain conversation history
+- Process user input
+- Decide: retrieve, call tool, ask clarification, or respond
+- Generate response
+**Deliverables**: agent.py with main loop
+**Acceptance Criteria**: Can handle multi-turn conversation
+**Priority**: P0
+
+### P2-T006: Implement clarification logic
+**Description**: Ask clarifying questions for ambiguous queries.
+**Requirements**: CONV-003, CONV-004
+**Implementation**:
+- Detect ambiguity (e.g., "I need tyres" → no vehicle specified)
+- Generate clarification question
+- Wait for user response before proceeding
+**Deliverables**: agent.py with clarification
+**Acceptance Criteria**: Asks appropriate questions for ambiguous queries
+**Priority**: P0
+
+### P2-T007: Implement tool calling decision
+**Description**: Decide when to call which tool.
+**Requirements**: TOOL-004, TOOL-006
+**Implementation**:
+- Parse user intent
+- Match intent to available tools
+- Extract parameters from query
+- Call tool with parameters
+**Deliverables**: agent.py with tool calling
+**Acceptance Criteria**: Correctly calls tools based on user queries
+**Priority**: P0
+
+### P2-T008: Create CLI interface
+**Description**: Command-line interface for the assistant.
+**Requirements**: UI-001
+**Implementation**:
+- Interactive prompt
+- Display assistant responses
+- Accept user input
+**Deliverables**: cli.py or main script
+**Acceptance Criteria**: Can run assistant via command line
+**Priority**: P0
+
+### P3-T001: Implement grounding checks
+**Description**: Ensure all answers come from data.
+**Requirements**: GROUND-001, GROUND-002
+**Implementation**:
+- All product mentions must be from retrieved documents
+- All prices/stock from catalogue data
+- Flag any generated claims not in data
+**Deliverables**: agent.py with grounding
+**Acceptance Criteria**: No hallucinated product information
+**Priority**: P0
+
+### P3-T002: Implement domain detection guardrail
+**Description**: Detect and handle off-topic queries.
+**Requirements**: Bonus Guardrails (+5 points)
+**Implementation**:
+- Classify query as on-topic (auto-parts) or off-topic
+- For off-topic: politely decline
+- For on-topic: proceed normally
+**Deliverables**: agent.py with guardrails
+**Acceptance Criteria**: Handles off-topic queries appropriately
+**Priority**: P1 (Bonus)
+
+### P3-T003: Implement confidence threshold
+**Description**: Only answer when retrieval confidence is high.
+**Requirements**: CONV-003
+**Implementation**:
+- Set minimum similarity threshold (e.g., 0.7)
+- If top result below threshold: ask for clarification
+- Configurable threshold
+**Deliverables**: retrieval.py with confidence threshold
+**Acceptance Criteria**: Low-confidence queries trigger clarification
+**Priority**: P0
+
+### P3-T004: Implement response validation
+**Description**: Validate that response claims are in retrieved data.
+**Requirements**: GROUND-001, GROUND-002
+**Implementation**:
+- Extract factual claims from response
+- Check each claim against retrieved documents
+- Remove or flag unsupported claims
+**Deliverables**: agent.py with validation
+**Acceptance Criteria**: All factual claims are grounded in data
+**Priority**: P0
+
+### P4-T001: Define eval set structure
+**Description**: Design the evaluation test case format.
+**Requirements**: EVAL-001 to EVAL-005
+**Implementation**:
+- Each test case: id, query, expected_behavior, category (happy/tricky/out-of-scope)
+- Expected behavior: retrieval results, tool calls, response criteria
+**Deliverables**: eval_set.jsonl schema
+**Acceptance Criteria**: Schema can represent all test types
+**Priority**: P0
+
+### P4-T002: Create happy path test cases
+**Description**: Create 10 tests for normal, well-formed queries.
+**Requirements**: EVAL-002, SAMPLE-001 to SAMPLE-005
+**Implementation**:
+- Queries like: "show me brake pads for Bajaj Pulsar 150"
+- "what's the stock of SKU BRK-1007?"
+- "create order for 5 units of OIL-1001"
+**Deliverables**: 10 test cases in eval_set.jsonl
+**Acceptance Criteria**: 10 valid happy path tests
+**Priority**: P0
+
+### P4-T003: Create tricky/ambiguous test cases
+**Description**: Create 10 tests for ambiguous or challenging queries.
+**Requirements**: EVAL-003
+**Implementation**:
+- Queries like: "I need tyres" (missing vehicle)
+- "show me cheap oil" (requires sorting)
+- "parts for my bike" (missing which bike)
+**Deliverables**: 10 test cases in eval_set.jsonl
+**Acceptance Criteria**: 10 valid tricky/ambiguous tests
+**Priority**: P0
+
+### P4-T004: Create out-of-scope test cases
+**Description**: Create 5 tests for queries outside the domain.
+**Requirements**: EVAL-004
+**Implementation**:
+- Queries like: "what's the weather today?"
+- "tell me a joke"
+- "what's the stock market doing?"
+**Deliverables**: 5 test cases in eval_set.jsonl
+**Acceptance Criteria**: 5 valid out-of-scope tests
+**Priority**: P0
+
+### P4-T005: Define "correct" criteria
+**Description**: Define pass/fail criteria for each test.
+**Requirements**: EVAL-005
+**Implementation**:
+- For retrieval: correct products returned
+- For tool calls: correct tool, correct parameters
+- For responses: contains required information, no hallucinations
+**Deliverables**: criteria in each test case
+**Acceptance Criteria**: All tests have clear pass/fail criteria
+**Priority**: P0
+
+### P4-T006: Implement eval runner
+**Description**: Script to run assistant against eval set.
+**Requirements**: EVAL-006, EVAL-007
+**Implementation**:
+- Load eval set
+- Run each query through assistant
+- Compare output to expected criteria
+- Calculate metrics (pass rate, retrieval accuracy, etc.)
+**Deliverables**: run_eval.py
+**Acceptance Criteria**: Can run full eval set and report results
+**Priority**: P0
+
+### P4-T007: Run evaluation
+**Description**: Execute eval set and collect results.
+**Requirements**: EVAL-006, EVAL-007
+**Deliverables**: results.json with all metrics
+**Acceptance Criteria**: Results file generated
+**Priority**: P0
+
+### P4-T008: Analyze failures
+**Description**: Document failure modes and insights.
+**Requirements**: EVAL-008 to EVAL-011
+**Implementation**:
+- Categorize failures (retrieval, tool calling, grounding, etc.)
+- Explain root causes
+- Propose fixes for each category
+- Document in DESIGN.md
+**Deliverables**: Failure analysis section in DESIGN.md
+**Acceptance Criteria**: Honest, insightful analysis with actionable improvements
+**Priority**: P0
+
+### P5-T001: DESIGN.md - Retrieval section
+**Description**: Document retrieval approach.
+**Requirements**: DESIGN-001, DESIGN-002
+**Content**:
+- Embedding model choice and justification
+- Vector store choice and justification
+- Indexing strategy
+- Chunking approach (if applicable)
+- Why this approach scales beyond prompt-stuffing
+**Deliverables**: Retrieval section in DESIGN.md
+**Acceptance Criteria**: Clear, technical explanation with reasoning
+**Priority**: P0
+
+### P5-T002: DESIGN.md - Tool design section
+**Description**: Document tool design.
+**Requirements**: DESIGN-003
+**Content**:
+- Tool registry architecture
+- Each tool's purpose and implementation
+- How model decides to call tools
+- Parameter extraction approach
+**Deliverables**: Tool design section in DESIGN.md
+**Acceptance Criteria**: Clear explanation of tool architecture
+**Priority**: P0
+
+### P5-T003: DESIGN.md - Prompt & guardrails
+**Description**: Document prompt design and guardrails.
+**Requirements**: DESIGN-004
+**Content**:
+- System prompt design
+- User prompt construction
+- Guardrails against hallucination
+- Guardrails against off-topic use
+- Confidence thresholds
+**Deliverables**: Prompt & guardrails section in DESIGN.md
+**Acceptance Criteria**: Clear explanation of all guardrails
+**Priority**: P0
+
+### P5-T004: DESIGN.md - Evaluation methodology
+**Description**: Document evaluation approach.
+**Requirements**: DESIGN-005
+**Content**:
+- Eval set design
+- Test case categories
+- Metrics used
+- How results are calculated
+- What failures taught you
+**Deliverables**: Evaluation methodology section in DESIGN.md
+**Acceptance Criteria**: Clear explanation of evaluation approach
+**Priority**: P0
+
+### P5-T005: DESIGN.md - Part B (if applicable)
+**Description**: Document forecasting approach.
+**Requirements**: DESIGN-006, FC-011
+**Content**:
+- Model choice and justification
+- Validation scheme
+- Leakage prevention measures
+- Baseline comparison
+**Deliverables**: Part B section in DESIGN.md
+**Acceptance Criteria**: Clear explanation of forecasting methodology
+**Priority**: P1 (Only if doing Part B)
+
+### P5-T006: README.md - Overview
+**Description**: Project overview.
+**Requirements**: README-001
+**Content**:
+- What the project is
+- What you implemented (Part A, Part B if applicable)
+- Key features
+**Deliverables**: Overview section in README.md
+**Acceptance Criteria**: Clear, concise overview
+**Priority**: P0
+
+### P5-T007: README.md - Tech stack
+**Description**: Document technology choices.
+**Requirements**: README-002
+**Content**:
+- Python version
+- LLM provider and model
+- Key libraries and versions
+- Why these choices
+**Deliverables**: Tech stack section in README.md
+**Acceptance Criteria**: Complete list of technologies used
+**Priority**: P0
+
+### P5-T008: README.md - Setup
+**Description**: Setup instructions.
+**Requirements**: README-003
+**Content**:
+- Environment variables needed (LLM API key, etc.)
+- Installation instructions
+- How to run the assistant
+- How to run the evaluation
+**Deliverables**: Setup section in README.md
+**Acceptance Criteria**: Someone can run the project from these instructions
+**Priority**: P0
+
+### P5-T009: README.md - Example interactions
+**Description**: Show example conversations.
+**Requirements**: README-004
+**Content**:
+- 3-5 example interactions
+- Show user input and assistant response
+- Include different query types
+**Deliverables**: Example interactions section in README.md
+**Acceptance Criteria**: Demonstrates assistant capabilities
+**Priority**: P0
+
+### P5-T010: README.md - Assumptions
+**Description**: Document any assumptions made.
+**Requirements**: README-005
+**Content**:
+- Assumptions about data
+- Assumptions about user queries
+- Pointers to DESIGN.md for detailed reasoning
+**Deliverables**: Assumptions section in README.md
+**Acceptance Criteria**: All non-obvious assumptions documented
+**Priority**: P0
+
+### P5-T011: Add code comments
+**Description**: Add docstrings and comments.
+**Requirements**: Code Quality (10 points)
+**Implementation**:
+- Function docstrings
+- Module docstrings
+- Inline comments for complex logic
+- Type hints where appropriate
+**Deliverables**: All Python files with comments
+**Acceptance Criteria**: Code is self-documenting
+**Priority**: P0
+
+---
+
+## 4. DEPENDENCIES AND PREREQUISITES
+
+### Dependency Graph
+
+```
+Phase 0: Setup
+    └── No dependencies (already complete)
+
+Phase 1: Foundation
+    ├── P1-T001 (GitHub repo)
+    │   └── Required for all subsequent tasks
+    ├── P1-T002 (Structure) → P1-T001
+    ├── P1-T003 (requirements.txt) → P1-T002
+    ├── P1-T004 (Embeddings) → P1-T003
+    ├── P1-T005 (Vector Store) → P1-T004
+    ├── P1-T006 (Index Catalogue) → P1-T005
+    └── P1-T007 (Test Retrieval) → P1-T006
+
+Phase 2: Tools & Agent
+    ├── P2-T001 (Tool Registry) → P1-T007
+    ├── P2-T002 (check_stock) → P2-T001
+    ├── P2-T003 (find_parts_by_vehicle) → P2-T001
+    ├── P2-T004 (create_order) → P2-T001
+    ├── P2-T005 (Agent Loop) → P2-T004
+    ├── P2-T006 (Clarification) → P2-T005
+    ├── P2-T007 (Tool Calling) → P2-T005
+    └── P2-T008 (CLI) → P2-T007
+
+Phase 3: Grounding
+    ├── P3-T001 (Grounding Checks) → P2-T008
+    ├── P3-T002 (Guardrails) → P3-T001
+    ├── P3-T003 (Confidence) → P3-T001
+    └── P3-T004 (Validation) → P3-T001
+
+Phase 4: Evaluation
+    ├── P4-T001 (Eval Schema) → P2-T008
+    ├── P4-T002 (Happy Tests) → P4-T001
+    ├── P4-T003 (Tricky Tests) → P4-T002
+    ├── P4-T004 (Out-of-Scope Tests) → P4-T003
+    ├── P4-T005 (Criteria) → P4-T004
+    ├── P4-T006 (Eval Runner) → P4-T005
+    ├── P4-T007 (Run Eval) → P4-T006
+    └── P4-T008 (Analyze Failures) → P4-T007
+
+Phase 5: Documentation
+    ├── P5-T001 (DESIGN: Retrieval) → P1-T007
+    ├── P5-T002 (DESIGN: Tools) → P2-T008
+    ├── P5-T003 (DESIGN: Prompts) → P3-T004
+    ├── P5-T004 (DESIGN: Evaluation) → P4-T008
+    ├── P5-T005 (DESIGN: Part B) → P6-Tasks (optional)
+    ├── P5-T006 (README: Overview) → P2-T008
+    ├── P5-T007 (README: Tech Stack) → P1-T003
+    ├── P5-T008 (README: Setup) → P1-T001
+    ├── P5-T009 (README: Examples) → P4-T002
+    ├── P5-T010 (README: Assumptions) → P5-T001
+    └── P5-T011 (Code Comments) → All implementation tasks
+
+Phase 6: Part B (Optional)
+    ├── P6-T001 (Analyze Data) → P0-T002
+    ├── P6-T002 (Baseline) → P6-T001
+    ├── P6-T003 (Model) → P6-T002
+    ├── P6-T004 (Validation) → P6-T003
+    ├── P6-T005 (Backtest) → P6-T004
+    └── P6-T006 (Document) → P6-T005
+
+Phase 7: Bonuses (Optional)
+    ├── P7-T001 (Chat UI) → P2-T008
+    ├── P7-T002 (Guardrails) → P3-T004
+    └── P7-T003 (Multimodal) → P1-T007
+
+Phase 8: Final Review
+    ├── P8-T001 (Final Eval) → P4-T008
+    ├── P8-T002 (Checklist) → All
+    ├── P8-T003 (Cleanup) → All
+    ├── P8-T004 (Doc Review) → P5-T011
+    ├── P8-T005 (Push to GitHub) → P8-T004
+    └── P8-T006 (Verify Secrets) → P8-T005
+```
+
+### Critical Path (Must Complete for Minimum Submission)
+```
+P0-T001 → P1-T001 → P1-T002 → P1-T003 → P1-T004 → P1-T005 → P1-T006 → P1-T007
+    → P2-T001 → P2-T002 → P2-T003 → P2-T004 → P2-T005 → P2-T006 → P2-T007 → P2-T008
+    → P3-T001 → P3-T003 → P3-T004
+    → P4-T001 → P4-T002 → P4-T003 → P4-T004 → P4-T005 → P4-T006 → P4-T007 → P4-T008
+    → P5-T001 → P5-T002 → P5-T003 → P5-T004 → P5-T006 → P5-T007 → P5-T008 → P5-T009 → P5-T010 → P5-T011
+    → P8-T001 → P8-T002 → P8-T003 → P8-T004 → P8-T005 → P8-T006
+```
+
+**Critical Path Duration**: ~20-22 hours
+
+---
+
+## 5. MILESTONES AND CHECKPOINTS
+
+### Milestone 1: Foundation Complete (End of Day 1)
+**Tasks**: Phase 0 + Phase 1
+**Deliverables**:
+- GitHub repository with structure
+- requirements.txt
+- Working retrieval system
+- Catalogue indexed
+**Success Criteria**: Can search for products semantically
+**Estimated Time**: 4-5 hours
+
+### Milestone 2: Agent Core Complete (End of Day 1 / Start of Day 2)
+**Tasks**: Phase 2
+**Deliverables**:
+- All tools implemented
+- Agent loop working
+- CLI interface
+**Success Criteria**: Can have multi-turn conversation with tool calls
+**Estimated Time**: 7.5 hours (cumulative: 11.5-12.5 hours)
+
+### Milestone 3: Grounding & Evaluation Complete (End of Day 2)
+**Tasks**: Phase 3 + Phase 4
+**Deliverables**:
+- Grounding checks implemented
+- Full eval set (25 test cases)
+- Eval runner and results
+- Failure analysis
+**Success Criteria**: Evaluation complete with documented failures
+**Estimated Time**: 8 hours (cumulative: 19.5-20.5 hours)
+
+### Milestone 4: Documentation Complete (End of Day 2 / Start of Day 3)
+**Tasks**: Phase 5
+**Deliverables**:
+- DESIGN.md complete
+- README.md complete
+- Code comments added
+**Success Criteria**: All documentation complete
+**Estimated Time**: 5 hours (cumulative: 24.5-25.5 hours)
+
+### Milestone 5: Part B Complete (Optional - Day 3)
+**Tasks**: Phase 6
+**Deliverables**:
+- Forecasting model
+- Baseline comparison
+- Documentation
+**Success Criteria**: Forecasting beats baseline
+**Estimated Time**: 3.5 hours (cumulative: 28-29 hours)
+
+### Milestone 6: Bonuses Complete (Optional - Day 3)
+**Tasks**: Phase 7
+**Deliverables**:
+- Any bonus features implemented
+**Success Criteria**: Bonus features working
+**Estimated Time**: 2.5 hours (cumulative: 30.5-31.5 hours)
+
+### Milestone 7: Final Review (Day 3)
+**Tasks**: Phase 8
+**Deliverables**:
+- Final evaluation run
+- Submission checklist verified
+- Code polished
+- Pushed to GitHub
+**Success Criteria**: Ready for submission
+**Estimated Time**: 2.5 hours (cumulative: 33-34 hours)
+
+---
+
+## 6. RISK MITIGATION TASKS
+
+### Risk: LLM API Issues
+**Mitigation Tasks**:
+- RT-001: Test LLM API connectivity early (add to Phase 1)
+- RT-002: Implement fallback to local model (Ollama) if API fails
+- RT-003: Cache LLM responses during development to reduce costs
+
+### Risk: Retrieval Quality Poor
+**Mitigation Tasks**:
+- RT-004: Test multiple embedding models (add 0.5h to P1-T004)
+- RT-005: Implement hybrid search (semantic + keyword) as backup
+- RT-006: Tune similarity threshold based on test queries
+
+### Risk: Tool Calling Unreliable
+**Mitigation Tasks**:
+- RT-007: Add validation for tool parameters (in P2-T004)
+- RT-008: Implement retry logic for tool calls
+- RT-009: Add logging for tool calling decisions
+
+### Risk: Time Constraints
+**Mitigation Strategy**:
+- Prioritize Critical Path tasks
+- Skip Phase 6 and 7 if behind schedule
+- Focus on quality of core Part A over bonuses
+
+### Contingency Plan
+If time runs short:
+1. Complete Critical Path (20-22 hours)
+2. Add basic documentation (2-3 hours)
+3. Skip bonuses
+4. Add polish if time remains
+
+---
+
+## 7. BONUS TASKS PRIORITY
+
+### Priority Order for Bonuses:
+1. **Part B - Demand Forecasting** (+15-20 points) - Highest value
+2. **Guardrails** (+5 points) - Relatively easy, good ROI
+3. **Chat/WhatsApp-style UI** (+5 points) - Moderate effort
+4. **Multimodal** (+5 points) - Higher effort, requires image processing
+
+### Recommended Bonus Strategy:
+- If ahead of schedule after Milestone 4: Do Part B (P6-Tasks)
+- If still ahead after Part B: Do Guardrails (P7-T002)
+- If still have time: Do Chat UI (P7-T001)
+- Only if all else done: Do Multimodal (P7-T003)
+
+---
+
+## 8. QUALITY CHECKLIST
+
+### Before Marking Task Complete:
+- [ ] Task delivers what's described
+- [ ] All associated requirements are satisfied
+- [ ] Code follows project conventions
+- [ ] Code has appropriate comments
+- [ ] No hardcoded secrets
+- [ ] No breaking changes to other components
+
+### Before Submission:
+- [ ] All Critical Path tasks complete
+- [ ] README.md complete and accurate
+- [ ] DESIGN.md complete and accurate
+- [ ] Eval set and results included
+- [ ] Code runs without errors
+- [ ] No hardcoded API keys
+- [ ] Repository structure matches requirements
+- [ ] All files committed and pushed to GitHub
+
+---
+
+## 9. TIME TRACKING
+
+Use this section to track actual time spent on each task:
+
+| Task ID | Task | Estimated | Actual | Notes |
+|---------|------|-----------|--------|-------|
+| P0-T001 | Read assignment.md | 0.25h | | |
+| P0-T002 | Analyze data files | 0.25h | | |
+| P0-T003 | Create ASSIGNMENT_ANALYSIS.md | 0.5h | | |
+| P0-T004 | Create REQUIREMENTS.md | 0.5h | | |
+| P0-T005 | Create planner.txt | 0.5h | | |
+| ... | ... | ... | | |
+
+---
+
+## 10. FINAL NOTES
+
+### Key Principles:
+1. **Follow assignment.md**: Always the ultimate authority
+2. **Quality over quantity**: Better to have solid Part A than rushed Part A + B
+3. **Document as you go**: Don't leave documentation to the end
+4. **Test frequently**: Catch issues early
+5. **Stay grounded**: All answers must come from data
+
+### What VIKMO Cares About Most:
+1. **Reliability**: Does it work correctly? (Evaluation proves this)
+2. **Judgment**: Did you make good technical choices? (DESIGN.md explains this)
+3. **Rigor**: Is your methodology sound? (Especially for Part B)
+4. **Clarity**: Can they understand your code and decisions?
+
+### What to Avoid:
+- Hardcoded API keys (instant disqualification)
+- Hallucinated information (major deduction)
+- Poor evaluation (missed opportunity to show rigor)
+- Undocumented code (hard to grade)
+
+---
+
+**Status**: This planner is complete and ready for implementation.
+**Next Step**: Begin Phase 1 implementation with task P1-T001.
+
+*Last Updated: 2026-06-21*
+*Planner Version: 1.0*
