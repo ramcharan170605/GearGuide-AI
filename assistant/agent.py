@@ -54,6 +54,12 @@ class DealerAssistant:
         self.context.current_query = query
         self.context.add_message("user", query)
 
+        # Check for off-topic queries (guardrail) - P3-T002
+        if self._is_off_topic(query):
+            response = self._generate_guardrail_response(query)
+            self.context.add_message("assistant", response)
+            return response
+
         # Check if waiting for clarification
         if self.context.pending_clarification:
             self.context.pending_clarification = None
@@ -101,6 +107,59 @@ class DealerAssistant:
         # For now, just treat as new query with clarification
         return self.process_query(clarification)
 
+    def _is_off_topic(self, query: str) -> bool:
+        """
+        Check if query is off-topic (not about auto parts, stock, or orders).
+        Requirements: Bonus Guardrails (+5 points)
+        Task: P3-T002
+        """
+        query_lower = query.lower()
+
+        # Off-topic phrases that should be blocked even if they contain on-topic words
+        off_topic_phrases = [
+            'stock market', 'market', 'weather', 'time', 'date', 'today',
+            'joke', 'funny', 'laugh', 'cricket', 'football', 'sports',
+            'news', 'politics', 'election', 'president', 'prime minister',
+            'movie', 'film', 'song', 'music', 'concert',
+            'food', 'restaurant', 'recipe', 'cook',
+            'health', 'doctor', 'hospital', 'medicine',
+            'school', 'college', 'university', 'education',
+            'love', 'relationship', 'dating',
+            'god', 'religion', 'prayer'
+        ]
+
+        # Check for off-topic phrases first
+        if any(phrase in query_lower for phrase in off_topic_phrases):
+            return True
+
+        # On-topic keywords
+        on_topic_keywords = [
+            'part', 'parts', 'product', 'products', 'item', 'items',
+            'stock', 'order', 'price', 'inventory', 'available', 'availability',
+            'brake', 'tyre', 'tire', 'chain', 'oil', 'engine', 'filter',
+            'bike', 'motorcycle', 'scooter', 'car', 'vehicle', 'auto',
+            'bajaj', 'ktm', 'royal enfield', 'honda', 'yamaha', 'tvs', 'hero', 'suzuki',
+            'sku', 'catalogue', 'catalog', 'purchase', 'buy', 'sell',
+            'lube', 'lubricant', 'pad', 'disc', 'rotor', 'sprocket',
+            'seat', 'cover', 'mirror', 'light', 'horn', 'battery',
+            'exhaust', 'muffler', 'guard', 'tidy', 'assembly',
+            'show', 'have', 'cheapest', 'cheap', 'expensive', 'cost'
+        ]
+        return not any(keyword in query_lower for keyword in on_topic_keywords)
+
+    def _generate_guardrail_response(self, query: str) -> str:
+        """
+        Generate a polite guardrail response for off-topic queries.
+        Requirements: Bonus Guardrails (+5 points)
+        Task: P3-T002
+        """
+        responses = [
+            "I'm sorry, I can only help with auto parts, stock, and orders. Is there something related to auto parts I can help you with?",
+            "I'm not able to assist with that. I'm here to help with auto parts queries, stock checks, and order placement.",
+            "I'm not sure I can help with that. Please ask about auto parts, stock availability, or placing orders."
+        ]
+        return responses[0]  # Simple: always use first response
+
     def _needs_clarification(self, query: str) -> Optional[str]:
         """Determine if query needs clarification. Requirements: CONV-003, CONV-004. Task: P2-T006"""
         query_lower = query.lower()
@@ -129,8 +188,10 @@ class DealerAssistant:
     def _decide_action(self, query: str, retrieval_results: list[dict]) -> str:
         """Decide action type. Requirements: TOOL-004, TOOL-006. Task: P2-T007"""
         query_lower = query.lower()
-        # Check for stock queries
-        if any(p in query_lower for p in ["stock of ", "check stock", "what's the stock", "what is the stock", "availability", "how many"]):
+        # Check for stock/price queries
+        if any(p in query_lower for p in ["stock of ", "check stock", "what's the stock", "what is the stock",
+                                           "what is the price", "what's the price", "price of ",
+                                           "availability", "how many", "units of ", "units available", "in stock"]):
             return "tool"
         # Check for order queries
         if any(p in query_lower for p in ["place order", "create order", "make an order", "order for", "i want to order"]):
@@ -146,14 +207,7 @@ class DealerAssistant:
         """Execute tool action. Requirements: TOOL-004, TOOL-006. Task: P2-T007"""
         query_lower = query.lower()
         try:
-            if "stock" in query_lower:
-                sku = self._extract_sku(query)
-                if sku:
-                    tool = self.tools.get_tool("check_stock")
-                    if tool:
-                        result = tool(sku)
-                        if isinstance(result, CheckStockResult):
-                            return self._format_stock_result(result)
+            # create_order: check first (higher priority)
             if "order" in query_lower:
                 dealer, items = self._parse_order_query(query)
                 if dealer and items:
@@ -162,6 +216,26 @@ class DealerAssistant:
                         result = tool(dealer, items)
                         if isinstance(result, CreateOrderResult):
                             return self._format_order_result(result)
+
+            # check_stock: handle stock, availability, and price queries
+            if any(w in query_lower for w in ["stock", "availability", "price", "how many"]):
+                sku = self._extract_sku(query)
+                if sku:
+                    tool = self.tools.get_tool("check_stock")
+                    if tool:
+                        result = tool(sku)
+                        if isinstance(result, CheckStockResult):
+                            return self._format_stock_result(result)
+
+            # find_parts_by_vehicle: handle vehicle queries
+            if " for " in query_lower:
+                make, model, year = self._parse_vehicle_query(query)
+                if make and model:
+                    tool = self.tools.get_tool("find_parts_by_vehicle")
+                    if tool:
+                        result = tool(make, model, year)
+                        return self._format_vehicle_results(result)
+
             return self._generate_retrieval_response(query, retrieval_results)
         except Exception as e:
             return f"Error: {str(e)}. Please try again."

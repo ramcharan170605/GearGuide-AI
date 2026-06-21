@@ -1,1 +1,205 @@
-{}
+{
+  "timestamp": "2026-06-21T12:32:15.467731",
+  "total_tests": 25,
+  "passed": 25,
+  "failed": 0,
+  "pass_rate": 1.0,
+  "by_category": {
+    "happy_path": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "pass_rate": 1.0
+    },
+    "tricky_ambiguous": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "pass_rate": 1.0
+    },
+    "out_of_scope": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "pass_rate": 1.0
+    }
+  },
+  "by_id": {
+    "H-001": {
+      "query": "What is the stock of BRK-1007?",
+      "category": "happy_path",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Brake Pad Set \u2014 Royal Enfield Meteor 350 (SKU: BRK-1007) - \u20b9530, Stock: 474, Status: In Stock"
+    },
+    "H-002": {
+      "query": "Place an order for 5 units of OIL-1001 for XYZ Motors",
+      "category": "happy_path",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Order ORD-04696876 for XYZ Motors - Total: \u20b92925\nItems:\n  - OIL-1001: 5"
+    },
+    "H-003": {
+      "query": "Find parts for Bajaj Pulsar 150",
+      "category": "happy_path",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Matching products:\n1. Chain Sprocket Kit \u2014 Bajaj Pulsar 150 (SKU: CHN-1001) - \u20b93225, Stock: 1\n2. Tail Tidy \u2014 Bajaj Pulsar 150 (SKU: BDY-1058) - \u20b92595, Stock: 449\n3. Crash Guard \u2014 Bajaj Pulsar 150 (SKU: BDY-1017) - \u20b91865, Stock: 160\n4. Tail Light Assembly \u2014 Bajaj Pulsar 150 (SKU: ELE-1106) - \u20b92385, Stock: 128\n5. Tail Light Assembly \u2014 Bajaj Pulsar 150 (SKU: ELE-1039) - \u20b9795, Stock: 200"
+    },
+    "H-004": {
+      "query": "Show me brake pads",
+      "category": "happy_path",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Which vehicle? Please specify make and model (e.g., 'Bajaj Pulsar 150')."
+    },
+    "H-005": {
+      "query": "What is the price of CAR-1024?",
+      "category": "happy_path",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Car Seat Cover Set \u2014 Kia Seltos (SKU: CAR-1024) - \u20b911840, Stock: 423, Status: In Stock"
+    },
+    "H-006": {
+      "query": "check stock ELE-1051",
+      "category": "happy_path",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Horn Set \u2014 Yamaha R15 (SKU: ELE-1051) - \u20b91380, Stock: 0, Status: Out of Stock"
+    },
+    "H-007": {
+      "query": "How many units of TYR-1009 are available?",
+      "category": "happy_path",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Tubeless Tyre \u2014 Honda Unicorn (SKU: TYR-1009) - \u20b93435, Stock: 324, Status: In Stock"
+    },
+    "H-008": {
+      "query": "Create order for 10 units of FIL-1006 for Delhi Auto",
+      "category": "happy_path",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Order ORD-5AACC290 for Delhi Auto - Total: \u20b94100\nItems:\n  - FIL-1006: 10"
+    },
+    "H-009": {
+      "query": "Parts for Royal Enfield Meteor 350",
+      "category": "happy_path",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Matching products:\n1. Tube \u2014 Royal Enfield Meteor 350 (SKU: TYR-1033) - \u20b9425, Stock: 0\n2. Side Mirror Set \u2014 Royal Enfield Meteor 350 (SKU: BDY-1012) - \u20b91950, Stock: 385\n3. Crash Guard \u2014 Royal Enfield Meteor 350 (SKU: BDY-1023) - \u20b93600, Stock: 0\n4. Tail Tidy \u2014 Royal Enfield Meteor 350 (SKU: BDY-1059) - \u20b91550, Stock: 193\n5. Tube \u2014 Royal Enfield Meteor 350 (SKU: TYR-1014) - \u20b9865, Stock: 166"
+    },
+    "H-010": {
+      "query": "Show me engine oil products",
+      "category": "happy_path",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Which vehicle? Please specify make and model (e.g., 'Bajaj Pulsar 150')."
+    },
+    "T-001": {
+      "query": "I need tyres",
+      "category": "tricky_ambiguous",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Which vehicle? Please specify make and model (e.g., 'Bajaj Pulsar 150')."
+    },
+    "T-002": {
+      "query": "Show me parts",
+      "category": "tricky_ambiguous",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Which vehicle? Please specify make and model (e.g., 'Bajaj Pulsar 150')."
+    },
+    "T-003": {
+      "query": "What do you have?",
+      "category": "tricky_ambiguous",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Could you please provide more details?"
+    },
+    "T-004": {
+      "query": "I need brake pads",
+      "category": "tricky_ambiguous",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Which vehicle? Please specify make and model (e.g., 'Bajaj Pulsar 150')."
+    },
+    "T-005": {
+      "query": "Chain lube",
+      "category": "tricky_ambiguous",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Which vehicle? Please specify make and model (e.g., 'Bajaj Pulsar 150')."
+    },
+    "T-006": {
+      "query": "What's available?",
+      "category": "tricky_ambiguous",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Could you please provide more details?"
+    },
+    "T-007": {
+      "query": "Give me some products",
+      "category": "tricky_ambiguous",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Could you please provide more details?"
+    },
+    "T-008": {
+      "query": "I want to buy",
+      "category": "tricky_ambiguous",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Could you please provide more details?"
+    },
+    "T-009": {
+      "query": "What's the cheapest?",
+      "category": "tricky_ambiguous",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Could you please provide more details?"
+    },
+    "T-010": {
+      "query": "Show me",
+      "category": "tricky_ambiguous",
+      "passed": true,
+      "reason": "Passed",
+      "response": "Could you please provide more details?"
+    },
+    "O-001": {
+      "query": "What's the weather today?",
+      "category": "out_of_scope",
+      "passed": true,
+      "reason": "Passed",
+      "response": "I'm sorry, I can only help with auto parts, stock, and orders. Is there something related to auto parts I can help you with?"
+    },
+    "O-002": {
+      "query": "Tell me a joke",
+      "category": "out_of_scope",
+      "passed": true,
+      "reason": "Passed",
+      "response": "I'm sorry, I can only help with auto parts, stock, and orders. Is there something related to auto parts I can help you with?"
+    },
+    "O-003": {
+      "query": "What time is it?",
+      "category": "out_of_scope",
+      "passed": true,
+      "reason": "Passed",
+      "response": "I'm sorry, I can only help with auto parts, stock, and orders. Is there something related to auto parts I can help you with?"
+    },
+    "O-004": {
+      "query": "What's the stock market doing?",
+      "category": "out_of_scope",
+      "passed": true,
+      "reason": "Passed",
+      "response": "I'm sorry, I can only help with auto parts, stock, and orders. Is there something related to auto parts I can help you with?"
+    },
+    "O-005": {
+      "query": "Who won the cricket match?",
+      "category": "out_of_scope",
+      "passed": true,
+      "reason": "Passed",
+      "response": "I'm sorry, I can only help with auto parts, stock, and orders. Is there something related to auto parts I can help you with?"
+    }
+  },
+  "failure_modes": {}
+}
