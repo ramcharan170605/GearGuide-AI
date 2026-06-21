@@ -124,18 +124,19 @@
 **Phase 4 Exit Criteria**: Eval set complete, results reported, failures analyzed
 
 ### Phase 5: Documentation (Day 2-3 - 3 hours)
-| Task ID | Task | Duration | Priority | Requirements | Dependencies |
-|---------|------|----------|----------|--------------|--------------|
-| P5-T001 | Write DESIGN.md - Retrieval section | 0.5h | P0 | DESIGN-001, DESIGN-002 | P1-T007 |
-| P5-T002 | Write DESIGN.md - Tool design section | 0.5h | P0 | DESIGN-003 | P2-T008 |
-| P5-T003 | Write DESIGN.md - Prompt & guardrails | 0.5h | P0 | DESIGN-004 | P3-T004 |
-| P5-T004 | Write DESIGN.md - Evaluation methodology | 0.5h | P0 | DESIGN-005 | P4-T008 |
-| P5-T005 | Write DESIGN.md - Part B (if applicable) | 0.5h | P1 | DESIGN-006 | FC-Tasks |
-| P5-T006 | Write README.md - Overview | 0.25h | P0 | README-001 | P2-T008 |
-| P5-T007 | Write README.md - Tech stack | 0.25h | P0 | README-002 | P1-T003 |
-| P5-T008 | Write README.md - Setup instructions | 0.5h | P0 | README-003 | P1-T001 |
-| P5-T009 | Write README.md - Example interactions | 0.5h | P0 | README-004 | P4-T002 |
-| P5-T010 | Write README.md - Assumptions | 0.25h | P0 | README-005 | P5-T001 |
+| Task ID | Task | Duration | Priority | Requirements | Dependencies | Status |
+|---------|------|----------|----------|--------------|--------------|--------|
+| P5-T001 | Write DESIGN.md - Retrieval section | 0.5h | P0 | DESIGN-001, DESIGN-002 | P1-T007 | ✅ DONE |
+| P5-T002 | Write DESIGN.md - Tool design section | 0.5h | P0 | DESIGN-003 | P2-T008 | ✅ DONE |
+| P5-T003 | Write DESIGN.md - Prompt & guardrails | 0.5h | P0 | DESIGN-004 | P3-T004 | ✅ DONE |
+| P5-T004 | Write DESIGN.md - Evaluation methodology | 0.5h | P0 | DESIGN-005 | P4-T008 | ✅ DONE |
+| P5-T005 | Write DESIGN.md - Part B (if applicable) | 0.5h | P1 | DESIGN-006 | FC-Tasks | ⏭ SKIPPED (bonus) |
+| P5-T006 | Write README.md - Overview | 0.25h | P0 | README-001 | P2-T008 | ✅ DONE |
+| P5-T007 | Write README.md - Tech stack | 0.25h | P0 | README-002 | P1-T003 | ✅ DONE |
+| P5-T008 | Write README.md - Setup instructions | 0.5h | P0 | README-003 | P1-T001 | ✅ DONE |
+| P5-T009 | Write README.md - Example interactions | 0.5h | P0 | README-004 | P4-T002 | ✅ DONE |
+| P5-T010 | Write README.md - Assumptions | 0.25h | P0 | README-005 | P5-T001 | ✅ DONE |
+| P5-T011 | Add code comments and docstrings | 0.5h | P0 | Code Quality | All | 🚧 IN PROGRESS |
 | P5-T011 | Add code comments and docstrings | 0.5h | P0 | Code Quality | All |
 
 **Phase 5 Total**: 4.75 hours
