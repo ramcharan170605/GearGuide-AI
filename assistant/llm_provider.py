@@ -25,7 +25,7 @@ except ImportError:
 class LLMConfig:
     """Configuration for LLM providers."""
     provider: str = "gemini"  # Default to Gemini as per assignment
-    model: str = "gemini-1.5-flash"  # Default model
+    model: str = "gemini-pro"  # Default model
     temperature: float = 0.0  # Low temperature for deterministic behavior
     max_tokens: int = 4096
     timeout: int = 60
