@@ -326,8 +326,7 @@ python eval/run_eval.py
 ## 📚 Documentation
 
 - **[DESIGN.md](DESIGN.md)**: Detailed design decisions and methodology
-- **[assignment.md](assignment.md)**: Original assignment requirements
-- **[LLM_MIGRATION_REPORT.md](LLM_MIGRATION_REPORT.md)**: Complete migration report
+
 
 ## 🌟 Compliance Checklist
 
@@ -338,13 +337,8 @@ python eval/run_eval.py
 - [ ] **SUB-005**: Demand forecasting code (Part B - bonus, not attempted)
 - [x] **SUB-006**: No hardcoded API keys or secrets
 
-## 📞 Contact
-
-For questions about the implementation, refer to:
-- [DESIGN.md](DESIGN.md) - Design decisions and reasoning
-- [LLM_MIGRATION_REPORT.md](LLM_MIGRATION_REPORT.md) - Migration details
-
 ---
+
 
 **Project**: GearGuide-AI  
 **Architecture**: LLM-First  

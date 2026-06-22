@@ -48,7 +48,7 @@ class LLMConfig:
         # Store separate Gemini, OpenAI and NVIDIA models
         self.gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         self.openai_model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-        self.nvidia_model = os.getenv("NVIDIA_MODEL", "ministral-14b-instruct-2512")
+        self.nvidia_model = os.getenv("NVIDIA_MODEL", "mistral-medium-3.5-128b")
 
         # Resolve the active model based on provider
         if self.model == "gemini-2.5-flash":
@@ -363,17 +363,25 @@ class NvidiaNimProvider(BaseLLMProvider):
         openai_messages = []
         for msg in messages:
             openai_messages.append({"role": msg.role, "content": msg.content})
-
         # Resolve model name
         model = self.config.model
         # If the model is a gemini model or an openai model, or not specified, use NVIDIA_MODEL
         if not model or "gemini" in model.lower() or any(x in model.lower() for x in ["gpt", "o1", "o3"]):
-            model = os.getenv("NVIDIA_MODEL") or "ministral-14b-instruct-2512"
+            model = os.getenv("NVIDIA_MODEL") or "mistral-medium-3.5-128b"
+
+        # Format model names to have the correct organization prefix (mistralai/) if missing
+        def format_nvidia_model(m: str) -> str:
+            if "/" not in m and ("mistral" in m.lower() or "ministral" in m.lower()):
+                return f"mistralai/{m}"
+            return m
+
+        model_formatted = format_nvidia_model(model)
+        default_formatted = format_nvidia_model("mistral-medium-3.5-128b")
 
         # List of models to try
-        models_to_try = [model]
-        if model != "ministral-14b-instruct-2512":
-            models_to_try.append("ministral-14b-instruct-2512")
+        models_to_try = [model_formatted]
+        if model_formatted != default_formatted:
+            models_to_try.append(default_formatted)
 
         last_exception = None
         for m in models_to_try:
