@@ -169,7 +169,11 @@ class DealerAssistant:
                 try:
                     tool_result = self._execute_tool(tool_name, parameters)
                     self.context.last_tool_result = {"tool": tool_name, "result": tool_result}
-                    response = self._format_tool_result(tool_name, tool_result)
+                    formatted_result = self._format_tool_result(tool_name, tool_result)
+                    # Feed back to the LLM to generate a natural, grounded response
+                    response = self._generate_response_with_tool_result(
+                        query, tool_name, formatted_result, retrieval_context, conversation_context
+                    )
                     self.context.add_message("assistant", response)
                     return response
                 except Exception as e:
@@ -239,3 +243,27 @@ Rules:
         ]
         result = self.provider.chat(messages)
         return result.content
+
+    def _generate_response_with_tool_result(self, query: str, tool_name: str, tool_result: str, retrieval_context: str, conversation_context: str) -> str:
+        system_prompt = f"""You are GearGuide-AI, an auto parts assistant. Respond with JSON.
+
+Retrieval Context:
+{retrieval_context}
+
+Conversation History:
+{conversation_context}
+
+Tool Executed: {tool_name}
+Tool Result:
+{tool_result}
+
+Respond with ONLY JSON in this format:
+{{"action": "response", "answer": "Your natural language response to the user query based on the tool result"}}
+"""
+        messages = [
+            Message(role="system", content=system_prompt),
+            Message(role="user", content=f"Query: {query}")
+        ]
+        result = self.provider.chat(messages)
+        parsed = self._parse_llm_response(result.content)
+        return parsed.get("answer", result.content)
