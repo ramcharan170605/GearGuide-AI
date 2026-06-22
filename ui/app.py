@@ -12,7 +12,7 @@ from assistant.retrieval import CatalogueRetriever
 from assistant.tools import create_default_tool_registry
 from assistant.llm_provider import get_llm_provider, reset_llm_provider
 
-st.set_page_config(page_title='GearGuide-AI', page_icon='🚗', layout='wide')
+st.set_page_config(page_title='GearGuide-AI', page_icon='⚙️', layout='wide')
 
 st.markdown("""<style>
 .stApp { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #ffffff; }
@@ -50,11 +50,11 @@ def check_llm_available():
 llm_available = check_llm_available()
 
 # Header
-st.markdown('<div class="header"><h1 style="color:#00d4ff;margin:0;">🚗 GearGuide-AI</h1><p style="color:#8892b0;margin:10px 0 0 0;">LLM-Powered Dealer Assistant</p></div>', unsafe_allow_html=True)
+st.markdown('<div class="header"><h1 style="color:#ffffff; font-family: sans-serif; font-weight: 500; margin:0; letter-spacing: 0.5px;">GearGuide-AI</h1><p style="color:#8892b0;margin:5px 0 0 0;font-size:14px;letter-spacing:0.5px;">LLM-POWERED DEALER ASSISTANT</p></div>', unsafe_allow_html=True)
 
 # LLM Provider Warning Banner (if not available)
 if not llm_available:
-    st.markdown('<div class="warning-banner"><h2 style="margin:0 0 10px 0;">⚠️ LLM Provider Required</h2><p style="margin:0; font-size: 16px;"><strong>This application requires either Google Gemini or OpenAI.</strong></p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="warning-banner"><h2 style="margin:0 0 10px 0;">⚠️ LLM Provider Required</h2><p style="margin:0; font-size: 16px;"><strong>This application requires NVIDIA NIM, Google Gemini, or OpenAI.</strong></p></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="setup-panel">', unsafe_allow_html=True)
     st.markdown('### Setup Instructions')

@@ -4,7 +4,7 @@ LLM Provider Abstraction Layer for GearGuide-AI
 Implements a unified interface for multiple LLM providers (Gemini, OpenAI, NVIDIA NIM)
 with automatic fallback, robust error handling, rate-limit aware retries, and environment-based configuration.
 
-Priority: 1. Google GenAI (new SDK) 2. OpenAI 3. NVIDIA NIM (OpenAI-compatible)
+Priority: 1. NVIDIA NIM (OpenAI-compatible) 2. Google GenAI (new SDK) 3. OpenAI
 """
 
 import os
@@ -33,8 +33,8 @@ except ImportError:
 @dataclass
 class LLMConfig:
     """Configuration for LLM providers."""
-    provider: str = "gemini"
-    model: str = "gemini-2.5-flash"
+    provider: str = "nvidia"
+    model: str = "mistral-medium-3.5-128b"
     temperature: float = 0.0
     max_tokens: int = 4096
     timeout: int = 60
@@ -42,7 +42,7 @@ class LLMConfig:
     def __post_init__(self):
         # Apply environment overrides if values are defaults
         env_provider = os.getenv("LLM_PROVIDER")
-        if env_provider and self.provider == "gemini":
+        if env_provider:
             self.provider = env_provider
 
         # Store separate Gemini, OpenAI and NVIDIA models
@@ -51,13 +51,13 @@ class LLMConfig:
         self.nvidia_model = os.getenv("NVIDIA_MODEL", "mistral-medium-3.5-128b")
 
         # Resolve the active model based on provider
-        if self.model == "gemini-2.5-flash":
+        if self.model in ["gemini-2.5-flash", "mistral-medium-3.5-128b"]:
             if self.provider == "openai":
                 self.model = self.openai_model
-            elif self.provider == "nvidia":
-                self.model = self.nvidia_model
-            else:
+            elif self.provider == "gemini":
                 self.model = self.gemini_model
+            else:
+                self.model = self.nvidia_model
 
         # Load numerical configs from environment if default
         if self.temperature == 0.0:
@@ -445,23 +445,7 @@ class LLMProviderManager:
 
     def _initialize_providers(self):
         """Initialize all available providers."""
-        # Try GenAI first (priority 1)
-        try:
-            gemini = GeminiProvider(self.config)
-            if gemini.is_available():
-                self._providers["gemini"] = gemini
-        except Exception:
-            pass
-
-        # Try OpenAI (priority 2)
-        try:
-            openai = OpenAIProvider(self.config)
-            if openai.is_available():
-                self._providers["openai"] = openai
-        except Exception:
-            pass
-
-        # Try NVIDIA NIM (priority 3)
+        # Try NVIDIA NIM first (priority 1)
         try:
             nvidia = NvidiaNimProvider(self.config)
             if nvidia.is_available():
@@ -469,25 +453,41 @@ class LLMProviderManager:
         except Exception:
             pass
 
+        # Try Google Gemini (priority 2 fallback)
+        try:
+            gemini = GeminiProvider(self.config)
+            if gemini.is_available():
+                self._providers["gemini"] = gemini
+        except Exception:
+            pass
+
+        # Try OpenAI (priority 3 final fallback)
+        try:
+            openai = OpenAIProvider(self.config)
+            if openai.is_available():
+                self._providers["openai"] = openai
+        except Exception:
+            pass
+
     def get_active_provider(self) -> Optional[BaseLLMProvider]:
         """Get the active provider based on priority."""
-        if "gemini" in self._providers:
+        if "nvidia" in self._providers:
+            return self._providers["nvidia"]
+        elif "gemini" in self._providers:
             return self._providers["gemini"]
         elif "openai" in self._providers:
             return self._providers["openai"]
-        elif "nvidia" in self._providers:
-            return self._providers["nvidia"]
         return None
 
     def chat(self, messages: list[Message], tools: Optional[list[dict]] = None) -> LLMReturn:
         """Send a chat completion request with fallback if the active provider fails."""
         providers_to_try = []
+        if "nvidia" in self._providers:
+            providers_to_try.append(self._providers["nvidia"])
         if "gemini" in self._providers:
             providers_to_try.append(self._providers["gemini"])
         if "openai" in self._providers:
             providers_to_try.append(self._providers["openai"])
-        if "nvidia" in self._providers:
-            providers_to_try.append(self._providers["nvidia"])
 
         if not providers_to_try:
             raise RuntimeError(

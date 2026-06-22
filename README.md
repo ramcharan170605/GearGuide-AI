@@ -2,6 +2,8 @@
 
 > **Status**: LLM-First Architecture Implementation Complete  
 > **Last Updated**: 2026-06-22
+> [!TIP]
+> **Recommended LLM Provider**: Based on project testing, we recommend configuring **NVIDIA NIM** with the `mistral-medium-3.5-128b` model. During evaluation, this provider has shown the most stable and responsive behavior. Users are encouraged to add an `NVIDIA_API_KEY` to their configuration for the best experience.
 
 ## How to Use the UI
 
@@ -44,7 +46,7 @@ The system has been **completely migrated from pattern-based logic to LLM-driven
 ## ✨ Features
 
 ### Core Capabilities
-- **LLM-Driven Reasoning**: Google Gemini (priority 1), OpenAI (priority 2), or NVIDIA NIM (priority 3) powers all decision-making
+- **LLM-Driven Reasoning**: NVIDIA NIM (priority 1), Google Gemini (priority 2), or OpenAI (priority 3) powers all decision-making
 - **Real RAG**: Semantic search over 600-product catalogue using sentence-transformers and FAISS
 - **Intelligent Tool Calling**: LLM decides when and how to use tools
 - **Multi-Turn Conversation**: Understands follow-up queries without repeated information
@@ -68,9 +70,9 @@ Three tools with structured Pydantic output:
 | Component | Technology | Version | Justification |
 |-----------|-------------|---------|---------------|
 | **Language** | Python | 3.10+ | Required by assignment |
-| **LLM Provider** | Google GenAI | Latest | Priority 1 |
-| **LLM Fallback 1** | OpenAI | Latest | Priority 2 fallback |
-| **LLM Fallback 2** | NVIDIA NIM | Latest | Priority 3 fallback |
+| **LLM Provider** | NVIDIA NIM | Latest | Priority 1 (Recommended) |
+| **LLM Fallback 1** | Google GenAI | Latest | Priority 2 fallback |
+| **LLM Fallback 2** | OpenAI | Latest | Priority 3 fallback |
 | **Embeddings** | sentence-transformers | all-MiniLM-L6-v2 | Free, local, good quality (384d) |
 | **Vector Store** | FAISS | 1.7.0+ | Efficient, in-memory, no dependencies |
 | **Validation** | Pydantic | 2.5.0+ | Structured output validation |
@@ -120,10 +122,10 @@ cp .env.example .env
 Edit `.env` and add your API keys:
 
 ```ini
-# LLM Provider API Keys (Priority: 1. Gemini, 2. OpenAI, 3. NVIDIA NIM)
+# LLM Provider API Keys (Priority: 1. NVIDIA NIM, 2. Gemini, 3. OpenAI)
+NVIDIA_API_KEY=your_nvidia_api_key_here
 GEMINI_API_KEY=your_gemini_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
-NVIDIA_API_KEY=your_nvidia_api_key_here
 ```
 
 > **Important**: The system **requires** a working LLM provider (Gemini, OpenAI, or NVIDIA NIM). Without a valid API key, the application will not function and will display a setup panel instead of the chat interface.
@@ -242,7 +244,7 @@ Final Response
 
 1. **LLM Provider Layer** (`assistant/llm_provider.py`)
    - Provider abstraction for Gemini, OpenAI, and NVIDIA NIM
-   - Automatic fallback logic (Gemini → OpenAI → NVIDIA NIM)
+   - Automatic fallback logic (NVIDIA NIM → Gemini → OpenAI)
    - Environment-based configuration
 
 2. **LLM Agent** (`assistant/agent.py`)
@@ -307,7 +309,7 @@ python eval/run_eval.py
 3. **Grounding**: All product-specific responses are validated against retrieved data
 
 ### Technical Assumptions
-1. **LLM Priority**: Gemini is preferred, with OpenAI and NVIDIA NIM as fallbacks (Gemini → OpenAI → NVIDIA NIM)
+1. **LLM Priority**: NVIDIA NIM is preferred, with Gemini and OpenAI as fallbacks (NVIDIA NIM → Gemini → OpenAI)
 2. **Embedding Model**: all-MiniLM-L6-v2 from sentence-transformers (384 dimensions)
 3. **Similarity Metric**: Cosine similarity via FAISS Inner Product
 4. **Confidence Threshold**: 0.7 for semantic similarity (bypassed for SKU queries)

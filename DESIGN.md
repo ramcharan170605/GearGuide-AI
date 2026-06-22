@@ -128,10 +128,10 @@ This ensures the system **always works**, even without API keys.
    - Unified interface for all providers
 
 2. **Priority System**
-   - Priority 1: Google Gemini (recommended by VIKMO, free tier)
-   - Priority 2: OpenAI (fallback)
-   - Priority 3: NVIDIA NIM (fallback)
-   - Automatic fallback if primary/secondary are unavailable (Gemini → OpenAI → NVIDIA NIM)
+   - Priority 1: NVIDIA NIM (recommended based on testing)
+   - Priority 2: Google Gemini (fallback)
+   - Priority 3: OpenAI (fallback)
+   - Automatic fallback if primary/secondary are unavailable (NVIDIA NIM → Gemini → OpenAI)
 
 3. **Configuration**
    - Environment variables for API keys (no hardcoding)
