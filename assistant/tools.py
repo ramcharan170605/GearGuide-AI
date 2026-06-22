@@ -273,6 +273,15 @@ def create_order(dealer: str, items: list[OrderItem], catalogue_data: Optional[p
     if catalogue_data is None:
         raise ValueError("catalogue_data is required for create_order")
 
+    # Convert dictionaries to OrderItem objects if necessary
+    parsed_items = []
+    for item in items:
+        if isinstance(item, dict):
+            parsed_items.append(OrderItem(**item))
+        else:
+            parsed_items.append(item)
+    items = parsed_items
+
     # Validate all SKUs exist and get prices
     total_inr = 0
     validated_items = []

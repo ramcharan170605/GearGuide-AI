@@ -39,7 +39,7 @@ def main():
     print("=" * 60)
 
     # Check LLM availability
-    llm_status = "✓ LLM available" if assistant._llm_available else "⚠ LLM not available (using fallback)"
+    llm_status = "✓ LLM available" if assistant.provider.is_available() else "⚠ LLM not available (using fallback)"
     print(f"Status: {llm_status}")
     print("Type 'quit' or 'exit' to end the conversation.")
     print()

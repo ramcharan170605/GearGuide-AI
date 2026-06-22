@@ -2,12 +2,14 @@
 LLM Provider Abstraction Layer for GearGuide-AI
 
 Implements a unified interface for multiple LLM providers (Gemini, OpenAI)
-with automatic fallback and environment-based configuration.
+with automatic fallback, robust error handling, rate-limit aware retries, and environment-based configuration.
 
 Priority: 1. Google GenAI (new SDK) 2. OpenAI
 """
 
 import os
+import time
+import re
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Union
 from dataclasses import dataclass
@@ -16,7 +18,14 @@ import json
 # Load environment variables from .env file
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    # Resolve absolute path to .env file relative to this file
+    _current_dir = os.path.dirname(os.path.abspath(__file__))
+    _project_root = os.path.dirname(_current_dir)
+    _env_path = os.path.join(_project_root, ".env")
+    if os.path.exists(_env_path):
+        load_dotenv(_env_path)
+    else:
+        load_dotenv()
 except ImportError:
     pass
 
@@ -29,6 +38,48 @@ class LLMConfig:
     temperature: float = 0.0
     max_tokens: int = 4096
     timeout: int = 60
+
+    def __post_init__(self):
+        # Apply environment overrides if values are defaults
+        env_provider = os.getenv("LLM_PROVIDER")
+        if env_provider and self.provider == "gemini":
+            self.provider = env_provider
+
+        # Store separate Gemini and OpenAI models
+        self.gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        self.openai_model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+        # Resolve the active model based on provider
+        if self.model == "gemini-2.5-flash":
+            if self.provider == "openai":
+                self.model = self.openai_model
+            else:
+                self.model = self.gemini_model
+
+        # Load numerical configs from environment if default
+        if self.temperature == 0.0:
+            temp_env = os.getenv("LLM_TEMPERATURE")
+            if temp_env is not None:
+                try:
+                    self.temperature = float(temp_env)
+                except ValueError:
+                    pass
+
+        if self.max_tokens == 4096:
+            max_tokens_env = os.getenv("LLM_MAX_TOKENS")
+            if max_tokens_env is not None:
+                try:
+                    self.max_tokens = int(max_tokens_env)
+                except ValueError:
+                    pass
+
+        if self.timeout == 60:
+            timeout_env = os.getenv("LLM_TIMEOUT")
+            if timeout_env is not None:
+                try:
+                    self.timeout = int(timeout_env)
+                except ValueError:
+                    pass
 
 
 @dataclass
@@ -72,7 +123,6 @@ class GeminiProvider(BaseLLMProvider):
     def __init__(self, config: LLMConfig):
         self.config = config
         self._client = None
-        self._model = None
         self._initialize_client()
 
     def _initialize_client(self):
@@ -99,8 +149,6 @@ class GeminiProvider(BaseLLMProvider):
         if not self.is_available():
             raise RuntimeError("Gemini provider not available. Check GEMINI_API_KEY.")
 
-        import google.genai as genai
-
         # Extract user message and system context
         last_user_message = None
         system_context = []
@@ -117,18 +165,62 @@ class GeminiProvider(BaseLLMProvider):
         context_str = "\n".join(system_context)
         full_prompt = f"{context_str}\n\nUser: {last_user_message}" if context_str else last_user_message
 
-        try:
-            response = self._client.models.generate_content(
-                model=self.config.model,
-                contents=[full_prompt]
-            )
-            return LLMReturn(
-                content=response.text,
-                usage={"input_tokens": 0, "output_tokens": 0},
-                provider="gemini"
-            )
-        except Exception as e:
-            raise RuntimeError(f"Gemini API error: {str(e)}")
+        # Resolve model name
+        model = self.config.model
+        if not model or "gemini" not in model.lower():
+            model = os.getenv("GEMINI_MODEL") or "gemini-2.5-flash"
+
+        # List of models to try
+        models_to_try = [model]
+        if model != "gemini-2.5-flash":
+            models_to_try.append("gemini-2.5-flash")
+
+        last_exception = None
+        for m in models_to_try:
+            max_retries = 3
+            backoff = 1.0
+            for attempt in range(max_retries):
+                try:
+                    response = self._client.models.generate_content(
+                        model=m,
+                        contents=[full_prompt]
+                    )
+                    return LLMReturn(
+                        content=response.text,
+                        usage={"input_tokens": 0, "output_tokens": 0},
+                        provider="gemini"
+                    )
+                except Exception as e:
+                    last_exception = e
+                    err_msg = str(e).lower()
+                    
+                    # Check if transient error (503, 429, etc.)
+                    is_retryable = any(x in err_msg for x in ["503", "429", "unavailable", "exhausted", "limit", "rate"])
+                    
+                    if is_retryable and attempt < max_retries - 1:
+                        # Parse suggested retry delay if available in error message
+                        delay = backoff
+                        match = re.search(r"retry in (\d+(?:\.\d+)?)s", err_msg)
+                        if match:
+                            try:
+                                delay = float(match.group(1)) + 1.0
+                            except ValueError:
+                                pass
+                        else:
+                            match2 = re.search(r"retry in (\d+) seconds", err_msg)
+                            if match2:
+                                try:
+                                    delay = float(match2.group(1)) + 1.0
+                                except ValueError:
+                                    pass
+                        
+                        print(f"Gemini call for {m} failed (attempt {attempt + 1}/{max_retries}): {e}. Retrying in {delay:.2f}s...")
+                        time.sleep(delay)
+                        backoff *= 2.0
+                    else:
+                        break  # Break to next model or propagate error
+
+        raise RuntimeError(f"Gemini API error: {str(last_exception)}")
 
 
 class OpenAIProvider(BaseLLMProvider):
@@ -167,23 +259,67 @@ class OpenAIProvider(BaseLLMProvider):
         for msg in messages:
             openai_messages.append({"role": msg.role, "content": msg.content})
 
-        try:
-            response = self._client.chat.completions.create(
-                model=self.config.model,
-                messages=openai_messages,
-                temperature=self.config.temperature,
-                max_tokens=self.config.max_tokens,
-            )
-            return LLMReturn(
-                content=response.choices[0].message.content or "",
-                usage={
-                    "input_tokens": response.usage.prompt_tokens,
-                    "output_tokens": response.usage.completion_tokens,
-                },
-                provider="openai"
-            )
-        except Exception as e:
-            raise RuntimeError(f"OpenAI API error: {str(e)}")
+        # Resolve model name
+        model = self.config.model
+        if not model or "gemini" in model.lower() or not any(x in model.lower() for x in ["gpt", "o1", "o3"]):
+            model = os.getenv("OPENAI_MODEL") or "gpt-4o-mini"
+
+        # List of models to try
+        models_to_try = [model]
+        if model != "gpt-4o-mini":
+            models_to_try.append("gpt-4o-mini")
+
+        last_exception = None
+        for m in models_to_try:
+            max_retries = 3
+            backoff = 1.0
+            for attempt in range(max_retries):
+                try:
+                    response = self._client.chat.completions.create(
+                        model=m,
+                        messages=openai_messages,
+                        temperature=self.config.temperature,
+                        max_tokens=self.config.max_tokens,
+                    )
+                    return LLMReturn(
+                        content=response.choices[0].message.content or "",
+                        usage={
+                            "input_tokens": response.usage.prompt_tokens,
+                            "output_tokens": response.usage.completion_tokens,
+                        },
+                        provider="openai"
+                    )
+                except Exception as e:
+                    last_exception = e
+                    err_msg = str(e).lower()
+                    
+                    # Check if transient error (429, 503, etc.)
+                    is_retryable = any(x in err_msg for x in ["429", "503", "rate", "quota", "overloaded", "unavailable"])
+                    
+                    if is_retryable and attempt < max_retries - 1:
+                        # Parse suggested retry delay if available in error message
+                        delay = backoff
+                        match = re.search(r"retry in (\d+(?:\.\d+)?)s", err_msg)
+                        if match:
+                            try:
+                                delay = float(match.group(1)) + 1.0
+                            except ValueError:
+                                pass
+                        else:
+                            match2 = re.search(r"retry in (\d+) seconds", err_msg)
+                            if match2:
+                                try:
+                                    delay = float(match2.group(1)) + 1.0
+                                except ValueError:
+                                    pass
+                        
+                        print(f"OpenAI call for {m} failed (attempt {attempt + 1}/{max_retries}): {e}. Retrying in {delay:.2f}s...")
+                        time.sleep(delay)
+                        backoff *= 2.0
+                    else:
+                        break  # Break to next model or propagate error
+
+        raise RuntimeError(f"OpenAI API error: {str(last_exception)}")
 
 
 class LLMProviderManager:
@@ -221,14 +357,28 @@ class LLMProviderManager:
         return None
 
     def chat(self, messages: list[Message], tools: Optional[list[dict]] = None) -> LLMReturn:
-        """Send a chat completion request using the active provider."""
-        provider = self.get_active_provider()
-        if provider is None:
+        """Send a chat completion request with fallback if the active provider fails."""
+        providers_to_try = []
+        if "gemini" in self._providers:
+            providers_to_try.append(self._providers["gemini"])
+        if "openai" in self._providers:
+            providers_to_try.append(self._providers["openai"])
+
+        if not providers_to_try:
             raise RuntimeError(
                 "No LLM provider available. "
                 "Please set GEMINI_API_KEY or OPENAI_API_KEY environment variable."
             )
-        return provider.chat(messages, tools)
+
+        last_error = None
+        for provider in providers_to_try:
+            try:
+                return provider.chat(messages, tools)
+            except Exception as e:
+                last_error = e
+                print(f"Provider {provider.get_name()} failed: {e}. Falling back to next available provider...")
+
+        raise RuntimeError(f"All LLM providers failed. Last error: {str(last_error)}")
 
     def list_providers(self) -> list[str]:
         """List available providers."""
