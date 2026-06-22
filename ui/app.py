@@ -65,6 +65,8 @@ if not llm_available:
    GEMINI_API_KEY=your_key_here
    # OR
    OPENAI_API_KEY=your_key_here
+   # OR
+   NVIDIA_API_KEY=your_key_here
    ```
 3. Restart the application
     ''')

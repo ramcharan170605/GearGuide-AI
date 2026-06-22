@@ -1,10 +1,10 @@
 """
 LLM Provider Abstraction Layer for GearGuide-AI
 
-Implements a unified interface for multiple LLM providers (Gemini, OpenAI)
+Implements a unified interface for multiple LLM providers (Gemini, OpenAI, NVIDIA NIM)
 with automatic fallback, robust error handling, rate-limit aware retries, and environment-based configuration.
 
-Priority: 1. Google GenAI (new SDK) 2. OpenAI
+Priority: 1. Google GenAI (new SDK) 2. OpenAI 3. NVIDIA NIM (OpenAI-compatible)
 """
 
 import os
@@ -45,14 +45,17 @@ class LLMConfig:
         if env_provider and self.provider == "gemini":
             self.provider = env_provider
 
-        # Store separate Gemini and OpenAI models
+        # Store separate Gemini, OpenAI and NVIDIA models
         self.gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         self.openai_model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        self.nvidia_model = os.getenv("NVIDIA_MODEL", "ministral-14b-instruct-2512")
 
         # Resolve the active model based on provider
         if self.model == "gemini-2.5-flash":
             if self.provider == "openai":
                 self.model = self.openai_model
+            elif self.provider == "nvidia":
+                self.model = self.nvidia_model
             else:
                 self.model = self.gemini_model
 
@@ -322,6 +325,108 @@ class OpenAIProvider(BaseLLMProvider):
         raise RuntimeError(f"OpenAI API error: {str(last_exception)}")
 
 
+class NvidiaNimProvider(BaseLLMProvider):
+    """NVIDIA NIM LLM provider (OpenAI-compatible)."""
+
+    def __init__(self, config: LLMConfig):
+        self.config = config
+        self._client = None
+        self._initialize_client()
+
+    def _initialize_client(self):
+        """Initialize the NVIDIA NIM client using OpenAI SDK."""
+        api_key = os.getenv("NVIDIA_API_KEY")
+        if not api_key:
+            self._client = None
+            return
+
+        try:
+            import openai
+            self._client = openai.Client(
+                api_key=api_key,
+                base_url="https://integrate.api.nvidia.com/v1"
+            )
+        except ImportError:
+            self._client = None
+
+    def is_available(self) -> bool:
+        return self._client is not None and os.getenv("NVIDIA_API_KEY") is not None
+
+    def get_name(self) -> str:
+        return "nvidia"
+
+    def chat(self, messages: list[Message], tools: Optional[list[dict]] = None) -> LLMReturn:
+        if not self.is_available():
+            raise RuntimeError("NVIDIA NIM provider not available. Check NVIDIA_API_KEY.")
+
+        # Convert messages to OpenAI format
+        openai_messages = []
+        for msg in messages:
+            openai_messages.append({"role": msg.role, "content": msg.content})
+
+        # Resolve model name
+        model = self.config.model
+        # If the model is a gemini model or an openai model, or not specified, use NVIDIA_MODEL
+        if not model or "gemini" in model.lower() or any(x in model.lower() for x in ["gpt", "o1", "o3"]):
+            model = os.getenv("NVIDIA_MODEL") or "ministral-14b-instruct-2512"
+
+        # List of models to try
+        models_to_try = [model]
+        if model != "ministral-14b-instruct-2512":
+            models_to_try.append("ministral-14b-instruct-2512")
+
+        last_exception = None
+        for m in models_to_try:
+            max_retries = 3
+            backoff = 1.0
+            for attempt in range(max_retries):
+                try:
+                    response = self._client.chat.completions.create(
+                        model=m,
+                        messages=openai_messages,
+                        temperature=self.config.temperature,
+                        max_tokens=self.config.max_tokens,
+                    )
+                    return LLMReturn(
+                        content=response.choices[0].message.content or "",
+                        usage={
+                            "input_tokens": response.usage.prompt_tokens,
+                            "output_tokens": response.usage.completion_tokens,
+                        },
+                        provider="nvidia"
+                    )
+                except Exception as e:
+                    last_exception = e
+                    err_msg = str(e).lower()
+                    
+                    # Check if transient error (429, 503, etc.)
+                    is_retryable = any(x in err_msg for x in ["429", "503", "rate", "quota", "overloaded", "unavailable"])
+                    
+                    if is_retryable and attempt < max_retries - 1:
+                        delay = backoff
+                        match = re.search(r"retry in (\d+(?:\.\d+)?)s", err_msg)
+                        if match:
+                            try:
+                                delay = float(match.group(1)) + 1.0
+                            except ValueError:
+                                pass
+                        else:
+                            match2 = re.search(r"retry in (\d+) seconds", err_msg)
+                            if match2:
+                                try:
+                                    delay = float(match2.group(1)) + 1.0
+                                except ValueError:
+                                    pass
+                        
+                        print(f"NVIDIA NIM call for {m} failed (attempt {attempt + 1}/{max_retries}): {e}. Retrying in {delay:.2f}s...")
+                        time.sleep(delay)
+                        backoff *= 2.0
+                    else:
+                        break  # Break to next model or propagate error
+
+        raise RuntimeError(f"NVIDIA NIM API error: {str(last_exception)}")
+
+
 class LLMProviderManager:
     """Manages multiple LLM providers with fallback logic."""
 
@@ -348,12 +453,22 @@ class LLMProviderManager:
         except Exception:
             pass
 
+        # Try NVIDIA NIM (priority 3)
+        try:
+            nvidia = NvidiaNimProvider(self.config)
+            if nvidia.is_available():
+                self._providers["nvidia"] = nvidia
+        except Exception:
+            pass
+
     def get_active_provider(self) -> Optional[BaseLLMProvider]:
         """Get the active provider based on priority."""
         if "gemini" in self._providers:
             return self._providers["gemini"]
         elif "openai" in self._providers:
             return self._providers["openai"]
+        elif "nvidia" in self._providers:
+            return self._providers["nvidia"]
         return None
 
     def chat(self, messages: list[Message], tools: Optional[list[dict]] = None) -> LLMReturn:
@@ -363,11 +478,13 @@ class LLMProviderManager:
             providers_to_try.append(self._providers["gemini"])
         if "openai" in self._providers:
             providers_to_try.append(self._providers["openai"])
+        if "nvidia" in self._providers:
+            providers_to_try.append(self._providers["nvidia"])
 
         if not providers_to_try:
             raise RuntimeError(
                 "No LLM provider available. "
-                "Please set GEMINI_API_KEY or OPENAI_API_KEY environment variable."
+                "Please set GEMINI_API_KEY, OPENAI_API_KEY, or NVIDIA_API_KEY environment variable."
             )
 
         import logging
