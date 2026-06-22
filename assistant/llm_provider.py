@@ -13,6 +13,13 @@ from typing import Optional, Any, Union
 from dataclasses import dataclass
 import json
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not installed, will use os.environ directly
+
 
 @dataclass
 class LLMConfig:

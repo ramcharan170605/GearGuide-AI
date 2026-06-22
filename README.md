@@ -1,7 +1,31 @@
 # GearGuide-AI - LLM-Powered Dealer Assistant
 
-> **Status**: LLM-First Architecture Implementation Complete
+> **Status**: LLM-First Architecture Implementation Complete  
 > **Last Updated**: 2026-06-22
+
+## How to Use the UI
+
+The application provides a Streamlit-based web interface for easy interaction with the GearGuide-AI Dealer Assistant.
+
+### Launch the UI
+
+After completing the [Setup](#setup) steps:
+
+```bash
+# Run the Streamlit interface
+streamlit run ui/app.py
+```
+
+The application will open in your default web browser at `http://localhost:8501`.
+
+### Using the Interface
+
+1. **Enter your query** in the chat input box at the bottom of the page
+2. **Send your message** by pressing Enter or clicking the send button
+3. **View responses** in the chat history above
+4. **Clear the conversation** using the clear button to start fresh
+
+---
 
 ## 🚀 Overview
 
@@ -97,10 +121,12 @@ Edit `.env` and add your API keys:
 ```ini
 # LLM Provider API Keys (Priority: 1. Gemini, 2. OpenAI)
 GEMINI_API_KEY=your_gemini_api_key_here
+
+# Fallback: OpenAI
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-> **Important**: The system will use Gemini by default. If Gemini is not available (no API key), it will fall back to OpenAI. If neither is available, it will use pattern-based fallback logic.
+> **Important**: The system **requires** a working LLM provider (Gemini or OpenAI). Without a valid API key, the application will not function and will display a setup panel instead of the chat interface.
 
 ## 🏃 Running the Assistant
 
@@ -110,15 +136,6 @@ OPENAI_API_KEY=your_openai_api_key_here
 # Run the interactive CLI
 python -m assistant.cli
 ```
-
-### Streamlit Web Interface
-
-```bash
-# Run the Streamlit UI
-streamlit run ui/app.py
-```
-
-The application will open in your default web browser at `http://localhost:8501`.
 
 ### Testing the Application
 
@@ -215,7 +232,7 @@ User Query
 └─────────────────────────┘
     ↓
 ┌─────────────────────────┐
-│  LLM Response Generation │ ← Grounded final response
+│  LLM Response Generation │ ← Grounded in context
 └─────────────────────────┘
     ↓
 Final Response
@@ -305,8 +322,6 @@ python eval/run_eval.py
 ### Bonus Features (Per Assignment)
 1. **Demand Forecasting (Part B)**: Time-series forecasting for sales data
 2. **Multimodal Image Recognition**: Identify parts from images using vision models
-3. **Enhanced Guardrails**: Toxicity detection, input validation
-4. **Performance Optimization**: Caching, batching, async processing
 
 ## 📚 Documentation
 

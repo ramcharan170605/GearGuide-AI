@@ -737,16 +737,18 @@ Previous conversation context:
             self.context.add_message("assistant", clarification)
             return clarification
 
-        # Try LLM-driven approach first if available
-        if self._llm_available:
-            try:
-                return self._process_with_llm(query, retrieval_results)
-            except Exception as e:
-                # Fall back to pattern-based logic
-                print(f"LLM processing failed: {e}")
+        # LLM is mandatory - use LLM-driven approach
+        if not self._llm_available:
+            raise RuntimeError(
+                "LLM provider is required but not available. "
+                "Please configure GEMINI_API_KEY or OPENAI_API_KEY in your .env file."
+            )
 
-        # Fallback to pattern-based logic
-        return self._process_with_patterns(query, retrieval_results)
+        try:
+            return self._process_with_llm(query, retrieval_results)
+        except Exception as e:
+            # LLM processing failed - this is a hard error
+            raise RuntimeError(f"LLM processing failed: {e}")
 
     def _process_with_llm(self, query: str, retrieval_results: list[dict]) -> str:
         """
