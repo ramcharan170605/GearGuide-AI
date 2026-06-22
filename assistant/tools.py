@@ -6,13 +6,16 @@ Implements required tools:
 - find_parts_by_vehicle: Find parts by make/model/year (TOOL-003)
 - create_order: Place order with structured output (TOOL-002)
 
+The tools are now designed to be called by the LLM agent with proper
+parameter validation and structured output.
+
 Requirements: TOOL-001 to TOOL-007
 Tasks: P2-T001, P2-T002, P2-T003, P2-T004
 """
 
 import uuid
 import numpy as np
-from typing import Optional, Any
+from typing import Optional, Any, Callable
 from pydantic import BaseModel, Field, field_validator
 import pandas as pd
 
@@ -35,9 +38,7 @@ class CheckStockResult(BaseModel):
 
 
 class OrderItem(BaseModel):
-    """
-    Line item for an order.
-    """
+    """Line item for an order."""
     sku: str = Field(..., description="Product SKU")
     quantity: int = Field(..., gt=0, description="Quantity (must be positive)")
 
@@ -60,6 +61,17 @@ class CreateOrderResult(BaseModel):
     status: str = Field(default="pending", description="Order status")
 
 
+class FindPartsResult(BaseModel):
+    """
+    Result of find_parts_by_vehicle tool.
+    Structured output for vehicle part search.
+    """
+    make: str = Field(..., description="Vehicle make")
+    model: str = Field(..., description="Vehicle model")
+    year: Optional[str] = Field(default=None, description="Vehicle year (optional)")
+    parts: list[dict] = Field(..., description="List of matching parts")
+
+
 # ============================================================================
 # Tool Registry (P2-T001: TOOL-004, TOOL-006)
 # ============================================================================
@@ -69,6 +81,9 @@ class ToolRegistry:
     Registry for all available tools.
 
     Allows the agent to discover and call tools by name.
+    Now supports both direct function registration and factory functions
+    that receive catalogue data.
+
     Requirements: TOOL-004, TOOL-006
     Task: P2-T001
     """
@@ -77,9 +92,14 @@ class ToolRegistry:
         self.tools: dict[str, callable] = {}
         self.schemas: dict[str, dict] = {}
         self.descriptions: dict[str, str] = {}
+        self._catalogue_data: Optional[pd.DataFrame] = None
+
+    def set_catalogue(self, catalogue_data: pd.DataFrame):
+        """Set the catalogue data for tools that need it."""
+        self._catalogue_data = catalogue_data
 
     def register(self, name: str, func: callable, schema: dict = None,
-                 description: str = ""):
+                 description: str = "", requires_catalogue: bool = False):
         """
         Register a tool with the registry.
 
@@ -88,8 +108,16 @@ class ToolRegistry:
             func: Tool function
             schema: JSON schema for tool parameters
             description: Tool description
+            requires_catalogue: Whether the tool needs catalogue data
         """
-        self.tools[name] = func
+        # If the tool requires catalogue, wrap it
+        if requires_catalogue and self._catalogue_data is not None:
+            def wrapped_func(*args, **kwargs):
+                return func(*args, catalogue_data=self._catalogue_data, **kwargs)
+            self.tools[name] = wrapped_func
+        else:
+            self.tools[name] = func
+
         if schema:
             self.schemas[name] = schema
         if description:
@@ -108,12 +136,7 @@ class ToolRegistry:
         return self.tools.get(name)
 
     def list_tools(self) -> list[str]:
-        """
-        List all available tool names.
-
-        Returns:
-            list[str]: Tool names
-        """
+        """List all available tool names."""
         return list(self.tools.keys())
 
     def get_tool_info(self, name: str) -> dict[str, Any]:
@@ -137,7 +160,7 @@ class ToolRegistry:
 # Tool Implementations
 # ============================================================================
 
-def check_stock(sku: str, catalogue_data: pd.DataFrame) -> CheckStockResult:
+def check_stock(sku: str, catalogue_data: Optional[pd.DataFrame] = None) -> CheckStockResult:
     """
     Look up stock availability for a product.
 
@@ -151,6 +174,9 @@ def check_stock(sku: str, catalogue_data: pd.DataFrame) -> CheckStockResult:
     Requirements: TOOL-001, TOOL-005, TOOL-007
     Task: P2-T002
     """
+    if catalogue_data is None:
+        raise ValueError("catalogue_data is required for check_stock")
+
     # Find product by SKU
     product = catalogue_data[catalogue_data['sku'] == sku]
 
@@ -169,7 +195,7 @@ def check_stock(sku: str, catalogue_data: pd.DataFrame) -> CheckStockResult:
     )
 
 
-def find_parts_by_vehicle(make: str, model: str, catalogue_data: pd.DataFrame,
+def find_parts_by_vehicle(make: str, model: str, catalogue_data: Optional[pd.DataFrame] = None,
                           year: Optional[str] = None, limit: int = 10) -> list[dict]:
     """
     Find parts that fit a specific vehicle.
@@ -177,8 +203,8 @@ def find_parts_by_vehicle(make: str, model: str, catalogue_data: pd.DataFrame,
     Args:
         make: Vehicle make (e.g., "Bajaj")
         model: Vehicle model (e.g., "Pulsar 150")
-        year: Optional vehicle year
         catalogue_data: Loaded catalogue DataFrame
+        year: Optional vehicle year
         limit: Maximum number of results
 
     Returns:
@@ -187,6 +213,9 @@ def find_parts_by_vehicle(make: str, model: str, catalogue_data: pd.DataFrame,
     Requirements: TOOL-003, TOOL-005
     Task: P2-T003
     """
+    if catalogue_data is None:
+        raise ValueError("catalogue_data is required for find_parts_by_vehicle")
+
     # Build vehicle string
     vehicle_str = f"{make} {model}"
     if year:
@@ -226,7 +255,7 @@ def find_parts_by_vehicle(make: str, model: str, catalogue_data: pd.DataFrame,
     return results
 
 
-def create_order(dealer: str, items: list[OrderItem], catalogue_data: pd.DataFrame) -> CreateOrderResult:
+def create_order(dealer: str, items: list[OrderItem], catalogue_data: Optional[pd.DataFrame] = None) -> CreateOrderResult:
     """
     Create an order with structured output.
 
@@ -241,6 +270,9 @@ def create_order(dealer: str, items: list[OrderItem], catalogue_data: pd.DataFra
     Requirements: TOOL-002, TOOL-005, TOOL-007
     Task: P2-T004
     """
+    if catalogue_data is None:
+        raise ValueError("catalogue_data is required for create_order")
+
     # Validate all SKUs exist and get prices
     total_inr = 0
     validated_items = []
@@ -274,6 +306,27 @@ def create_order(dealer: str, items: list[OrderItem], catalogue_data: pd.DataFra
 
 
 # ============================================================================
+# Tool Factory Functions (for LLM agent)
+# ============================================================================
+
+def create_check_stock_tool(catalogue_data: pd.DataFrame) -> Callable[[str], CheckStockResult]:
+    """Create a check_stock function with catalogue data bound."""
+    return lambda sku: check_stock(sku, catalogue_data)
+
+
+def create_find_parts_tool(catalogue_data: pd.DataFrame) -> Callable:
+    """Create a find_parts_by_vehicle function with catalogue data bound."""
+    return lambda make, model, year=None, limit=10: find_parts_by_vehicle(
+        make, model, catalogue_data, year, limit
+    )
+
+
+def create_create_order_tool(catalogue_data: pd.DataFrame) -> Callable:
+    """Create a create_order function with catalogue data bound."""
+    return lambda dealer, items: create_order(dealer, items, catalogue_data)
+
+
+# ============================================================================
 # Initialize Default Tool Registry
 # ============================================================================
 
@@ -290,6 +343,7 @@ def create_default_tool_registry(catalogue_data: pd.DataFrame) -> ToolRegistry:
     Task: P2-T001
     """
     registry = ToolRegistry()
+    registry.set_catalogue(catalogue_data)
 
     # Register check_stock
     registry.register(
@@ -367,22 +421,22 @@ if __name__ == "__main__":
     # Test check_stock (P2-T002)
     stock_result = check_stock("BRK-1007", catalogue)
     print(f"✓ P2-T002: check_stock working")
-    print(f"  SKU: {stock_result.sku}, Stock: {stock_result.stock}, In Stock: {stock_result.in_stock}")
+    print(f" SKU: {stock_result.sku}, Stock: {stock_result.stock}, In Stock: {stock_result.in_stock}")
 
     # Test find_parts_by_vehicle (P2-T003)
     vehicle_results = find_parts_by_vehicle("Royal Enfield", "Meteor 350", catalogue_data=catalogue)
     print(f"✓ P2-T003: find_parts_by_vehicle working")
-    print(f"  Found {len(vehicle_results)} parts for Royal Enfield Meteor 350")
+    print(f" Found {len(vehicle_results)} parts for Royal Enfield Meteor 350")
 
     # Test create_order (P2-T004)
     order_items = [OrderItem(sku="BRK-1007", quantity=5)]
     order_result = create_order("ABC Motors", order_items, catalogue)
     print(f"✓ P2-T004: create_order working")
-    print(f"  Order ID: {order_result.order_id}, Total: ₹{order_result.total_inr}")
+    print(f" Order ID: {order_result.order_id}, Total: ₹{order_result.total_inr}")
 
     # Test tool registry (P2-T001)
     registry = create_default_tool_registry(catalogue)
     print(f"✓ P2-T001: Tool registry created with {len(registry.list_tools())} tools")
-    print(f"  Available tools: {registry.list_tools()}")
+    print(f" Available tools: {registry.list_tools()}")
 
     print("\n✓ All Phase 2 tool tests passed!")

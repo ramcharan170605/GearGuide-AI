@@ -1,60 +1,65 @@
-# GearGuide-AI - Dealer Assistant
-> **Last Updated**: 2026-06-21
+# GearGuide-AI - LLM-Powered Dealer Assistant
 
-## How to Use the UI
+> **Status**: LLM-First Architecture Implementation Complete
+> **Last Updated**: 2026-06-22
 
-The application provides a Streamlit-based web interface for easy interaction with the GearGuide-AI Dealer Assistant.
+## 🚀 Overview
 
-### Launch the UI
+This repository contains the implementation of the **GearGuide-AI Dealer Assistant**, featuring a **fully LLM-driven architecture** with Retrieval-Augmented Generation (RAG), intelligent tool-calling, and conversational reasoning.
 
-After completing the [Installation](#installation) steps:
+### 🎯 Key Achievement: LLM-First Migration
 
-```bash
-# Run the Streamlit interface
-streamlit run ui/app.py
-```
+The system has been **completely migrated from pattern-based logic to LLM-driven reasoning**. The LLM now serves as the primary reasoning engine for:
 
-The application will open in your default web browser at `http://localhost:8501`.
+- **Understanding**: Intent detection, entity extraction, scope checking
+- **Routing**: Tool selection, retrieval decisions, action planning
+- **Conversation**: Multi-turn dialogue, follow-up reasoning, context management
+- **Guardrails**: Off-topic detection, domain checking, safety validation
+- **Grounding**: Response validation against retrieved context
 
-### Using the Interface
+## ✨ Features
 
-1. **Enter your query** in the chat input box at the bottom of the page
-2. **Send your message** by pressing Enter or clicking the send button
-3. **View responses** in the chat history above
-4. **Clear the conversation** using the clear button to start fresh
+### Core Capabilities
+- **LLM-Driven Reasoning**: Google Gemini (priority) or OpenAI (fallback) powers all decision-making
+- **Real RAG**: Semantic search over 600-product catalogue using sentence-transformers and FAISS
+- **Intelligent Tool Calling**: LLM decides when and how to use tools
+- **Multi-Turn Conversation**: Understands follow-up queries without repeated information
+- **Grounded Responses**: All answers are validated against catalogue data
+- **LLM-Based Guardrails**: Intelligent off-topic detection and scope enforcement
 
-## Overview
+### Tools (Function Calling)
+Three tools with structured Pydantic output:
+- `check_stock`: Look up product availability by SKU
+- `find_parts_by_vehicle`: Find parts by make/model/year
+- `create_order`: Place orders with validation and structured output
 
-This repository contains the implementation of the GearGuide-AI Dealer Assistant, featuring a **conversational assistant** with Retrieval-Augmented Generation (RAG), tool-calling, and pattern-based intent detection.
+### Conversation Intelligence
+- Remembers context across turns
+- Understands references (e.g., "Can I order 5?" after stock check)
+- Asks intelligent clarification questions
+- Handles ambiguous queries gracefully
 
-### Features
-
-- **Retrieval System**: Semantic search over 600-product catalogue using sentence-transformers and FAISS
-- **Tool Calling**: Three tools with structured output (Pydantic models)
-  - `check_stock`: Look up product availability by SKU
-  - `find_parts_by_vehicle`: Find parts by make/model/year
-  - `create_order`: Place orders with validation
-- **Conversation Handling**: Multi-turn dialogue with context, clarification questions
-- **Grounding**: All responses grounded in catalogue data, no hallucinations
-- **Guardrails**: Off-topic query detection with polite decline
-
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Component | Technology | Version | Justification |
 |-----------|-------------|---------|---------------|
 | **Language** | Python | 3.10+ | Required by assignment |
+| **LLM Provider** | Google Generative AI | Latest | Free tier, recommended by VIKMO |
+| **LLM Fallback** | OpenAI | Latest | Backup provider |
 | **Embeddings** | sentence-transformers | all-MiniLM-L6-v2 | Free, local, good quality (384d) |
 | **Vector Store** | FAISS | 1.7.0+ | Efficient, in-memory, no dependencies |
 | **Validation** | Pydantic | 2.5.0+ | Structured output validation |
 | **Data Processing** | Pandas | 2.0.0+ | Data loading and manipulation |
+| **UI** | Streamlit | Latest | Interactive web interface |
 
 ### Why These Choices
-
+- **LLM-First**: The LLM drives all reasoning, replacing pattern matching and hardcoded logic
 - **sentence-transformers**: Free, open-source, no API costs, reproducible
 - **FAISS**: Scales to millions of vectors, pure Python/C++ with numpy
 - **Pydantic**: Ensures structured, validated output as required
+- **Streamlit**: Quick, interactive UI for demonstration
 
-## Setup
+## 📋 Setup
 
 ### Prerequisites
 - Python 3.10+
@@ -70,16 +75,34 @@ cd VIKMO-AI-ML-Intern-Assignment
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate # On Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies (both backend and UI)
+# Install dependencies
 pip install -r requirements.txt
-pip install -r ui/requirements.txt
 ```
 
-> **Note**: First-time setup may take a few minutes as dependencies (including the ~80MB embedding model) are downloaded.
+> **Note**: First-time setup may take a few minutes as dependencies (including the ~80MB embedding model and LLM SDKs) are downloaded.
 
-## Running the Assistant
+### Environment Configuration
+
+Create a `.env` file in the project root:
+
+```bash
+# Copy the example file
+cp .env.example .env
+```
+
+Edit `.env` and add your API keys:
+
+```ini
+# LLM Provider API Keys (Priority: 1. Gemini, 2. OpenAI)
+GEMINI_API_KEY=your_gemini_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+> **Important**: The system will use Gemini by default. If Gemini is not available (no API key), it will fall back to OpenAI. If neither is available, it will use pattern-based fallback logic.
+
+## 🏃 Running the Assistant
 
 ### CLI Interface
 
@@ -95,26 +118,28 @@ python -m assistant.cli
 streamlit run ui/app.py
 ```
 
-### Testing the Application
+The application will open in your default web browser at `http://localhost:8501`.
 
-To verify the application is working correctly:
+### Testing the Application
 
 ```bash
 # Run the evaluation suite
 python eval/run_eval.py
 ```
 
-This will execute 25 test cases covering various scenarios including stock checks, vehicle part lookups, order creation, clarification handling, and guardrail detection.
+This will execute test cases covering:
+- **Happy Paths**: Normal, well-formed queries
+- **Tricky/Ambiguous**: Queries needing clarification
+- **Out-of-Scope**: Off-topic queries (guardrail testing)
 
-## Example Queries
-
-Here are some example queries you can try with the assistant:
+## 💬 Example Queries
 
 ### Stock Check
 - "What is the stock of BRK-1007?"
 - "Check availability for CHN-1001"
 - "How many units of BDY-1058 are in stock?"
 - "Is BRK-1007 available?"
+- "What is the price of BRK-1007?"
 
 ### Vehicle Parts
 - "Find parts for Bajaj Pulsar 150"
@@ -132,72 +157,125 @@ Here are some example queries you can try with the assistant:
 - "What is BRK-1007?"
 - "Tell me about CHN-1001"
 - "What are the specifications for the Chain Sprocket Kit?"
-- "What does BDY-1058 do?"
 
-### Clarification Examples
-- "I need tyres" (Assistant will ask for vehicle make and model)
-- "Show me brake pads" (Assistant will ask for specific vehicle)
-- "Parts for my bike" (Assistant will request more details)
+### Multi-Turn Conversation
+```
+User: What is the stock of BRK-1007?
+Assistant: Brake Pad Set — Royal Enfield Meteor 350 (SKU: BRK-1007) - ₹530, Stock: 474, Status: In Stock
 
-### Guardrail Examples (Off-Topic)
-- "What's the weather today?"
-- "Tell me a joke"
-- "What is the capital of France?"
-
-## Implementation Details
-
-### Retrieval System
-The assistant uses a RAG (Retrieval-Augmented Generation) approach with:
-- **sentence-transformers** (all-MiniLM-L6-v2) for generating 384-dimensional embeddings
-- **FAISS** (Facebook AI Similarity Search) for efficient vector similarity search
-- **Cosine similarity** for matching queries to catalogue products
-- **Confidence threshold** of 0.7 (bypassed for direct SKU lookups)
-
-### Intent Detection
-The system uses **pattern-based matching** to detect user intent:
-- SKU patterns trigger `check_stock` tool
-- "for [make] [model]" patterns trigger `find_parts_by_vehicle` tool
-- "order", "place order", "create order" patterns trigger `create_order` tool
-- Short or ambiguous queries trigger clarification requests
-- Off-topic queries are detected and politely declined
-
-### Tool System
-Three tools are available with structured Pydantic models:
-- **check_stock**: Retrieves product details by SKU including name, price, stock, and status
-- **find_parts_by_vehicle**: Searches catalogue for products matching vehicle make/model
-- **create_order**: Validates and creates orders with customer name and quantities
-
-### Conversation Handling
-- Maintains context for multi-turn dialogues
-- Requests clarification for ambiguous queries
-- Grounds all responses in actual catalogue data
-- Provides structured, consistent output formats
-
-## Direct Python Usage
-
-```python
-import sys
-sys.path.insert(0, '.')
-from assistant.agent import DealerAssistant
-from assistant.retrieval import CatalogueRetriever
-from assistant.tools import create_default_tool_registry
-import pandas as pd
-
-# Initialize
-catalogue = pd.read_csv('catalogue.csv')
-retriever = CatalogueRetriever('catalogue.csv')
-retriever.load_catalogue()
-retriever.initialize_embedding_model()
-retriever.build_vector_store()
-tool_registry = create_default_tool_registry(catalogue)
-agent = DealerAssistant(retriever, tool_registry)
-
-# Process queries
-response = agent.process_query("What is the stock of BRK-1007?")
-print(response)
+User: Can I order 5?
+Assistant: Order ORD-ABC12345 for User - Total: ₹2650
+Items:
+ - BRK-1007: 5
 ```
 
-## Assumptions
+### Clarification Examples
+- "I need tyres" → Assistant: "Which vehicle? Please specify make and model (e.g., 'Bajaj Pulsar 150')."
+- "Show me brake pads" → Assistant: "Which vehicle? Please specify make and model."
+- "Parts for my bike" → Assistant: "Could you please provide more details?"
+
+### Guardrail Examples (Off-Topic)
+- "What's the weather today?" → Assistant: "I'm sorry, I can only help with auto parts, stock, and orders."
+- "Tell me a joke" → Assistant: "I'm not able to assist with that. I'm here to help with auto parts queries."
+- "What is the capital of France?" → Assistant: "I'm sorry, I can only help with auto parts, stock, and orders."
+
+## 🏗️ Architecture
+
+### LLM-First Pipeline
+
+```
+User Query
+    ↓
+┌─────────────────────────┐
+│  LLM Understanding        │ ← Intent, entities, scope
+└─────────────────────────┘
+    ↓
+┌─────────────────────────┐
+│  Guardrail Check         │ ← LLM-based off-topic detection
+└─────────────────────────┘
+    ↓
+┌─────────────────────────┐
+│  Clarification Check     │ ← LLM decides if more info needed
+└─────────────────────────┘
+    ↓
+┌─────────────────────────┐
+│  Retrieval               │ ← FAISS + sentence-transformers
+└─────────────────────────┘
+    ↓
+┌─────────────────────────┐
+│  LLM Action Decision     │ ← Tool call or retrieval response
+└─────────────────────────┘
+    ↓
+┌─────────────────────────┐
+│  Tool Execution          │ ← check_stock, find_parts, create_order
+└─────────────────────────┘
+    ↓
+┌─────────────────────────┐
+│  Context Assembly        │ ← Combine all context
+└─────────────────────────┘
+    ↓
+┌─────────────────────────┐
+│  LLM Response Generation │ ← Grounded final response
+└─────────────────────────┘
+    ↓
+Final Response
+```
+
+### Key Components
+
+1. **LLM Provider Layer** (`assistant/llm_provider.py`)
+   - Provider abstraction for Gemini and OpenAI
+   - Automatic fallback logic
+   - Environment-based configuration
+
+2. **LLM Agent** (`assistant/agent.py`)
+   - LLM-driven reasoning engine
+   - Conversation context management
+   - Tool calling orchestration
+   - Guardrail enforcement
+   - Grounding validation
+
+3. **Retrieval System** (`assistant/retrieval.py`)
+   - FAISS vector store
+   - sentence-transformers embeddings
+   - Semantic search over catalogue
+
+4. **Tool System** (`assistant/tools.py`)
+   - Pydantic-validated tool implementations
+   - Tool registry with descriptions
+   - Structured output for LLM consumption
+
+5. **UI** (`ui/app.py`)
+   - Streamlit web interface
+   - Conversation history display
+   - Quick action buttons
+
+6. **Evaluation** (`eval/run_eval.py`)
+   - Comprehensive test suite
+   - Quality metric collection
+   - Failure analysis
+
+## 📊 Evaluation
+
+The evaluation framework validates:
+
+1. **Retrieval Quality**: Accuracy of semantic search results
+2. **Tool-Calling Quality**: Correct tool selection and parameter extraction
+3. **Conversation Quality**: Multi-turn dialogue handling
+4. **Grounding Quality**: Response accuracy against catalogue data
+5. **Multi-Turn Reasoning**: Follow-up query understanding
+
+### Current Results
+- **Total Tests**: 25
+- **Categories**: Happy Path (10), Tricky/Ambiguous (10), Out-of-Scope (5)
+- **Target**: 100% pass rate across all categories
+
+Run evaluation:
+```bash
+python eval/run_eval.py
+```
+
+## 🎯 Assumptions
 
 ### Data Assumptions
 1. **Catalogue**: 600 products with fields: sku, name, category, brand, vehicle_fitment, price_inr, stock, description
@@ -207,89 +285,52 @@ print(response)
 5. **Stock**: Non-negative integers, 0 means out of stock
 
 ### Query Assumptions
-1. **SKU Queries**: Queries containing SKUs are treated as specific lookups, bypassing confidence thresholds
-2. **Vehicle Queries**: Queries with "for [make] [model]" pattern trigger find_parts_by_vehicle
-3. **Stock/Price Queries**: Queries with "stock", "price", "availability" trigger check_stock
-4. **Order Queries**: Queries with "order", "place order", "create order" trigger create_order
-5. **Ambiguous Queries**: Short queries or queries with vehicle-related terms but no vehicle specified trigger clarification
+1. **Multi-Turn Context**: The LLM maintains conversation context for follow-up queries
+2. **Tool Calling**: The LLM decides when and how to call tools based on query intent
+3. **Grounding**: All product-specific responses are validated against retrieved data
 
 ### Technical Assumptions
-1. **Embedding Model**: all-MiniLM-L6-v2 from sentence-transformers (384 dimensions)
-2. **Similarity Metric**: Cosine similarity via FAISS Inner Product
-3. **Confidence Threshold**: 0.7 for semantic similarity (bypassed for SKU queries)
+1. **LLM Priority**: Gemini is preferred, with OpenAI as fallback
+2. **Embedding Model**: all-MiniLM-L6-v2 from sentence-transformers (384 dimensions)
+3. **Similarity Metric**: Cosine similarity via FAISS Inner Product
+4. **Confidence Threshold**: 0.7 for semantic similarity (bypassed for SKU queries)
 
-### Limitations
-1. **Pattern-Based Intent Detection**: Uses regex and keyword matching instead of LLM for intent detection
-   - Ensures deterministic, testable behavior
-   - Trade-off: Less flexible for novel query formats
-2. **Single-Turn Clarification**: Clarification questions don't maintain multi-turn context
-   - Future: Add conversation memory for multi-turn clarification
-3. **No Image Support**: Multimodal feature not implemented
+## 🚀 Future Enhancements
 
-For detailed design decisions, see [DESIGN.md](DESIGN.md).
+### Immediate
+1. **Enhanced Conversation Memory**: Better context tracking for longer dialogues
+2. **Improved Tool Descriptions**: More detailed schemas for better LLM understanding
+3. **Quality Metric Refinement**: More sophisticated evaluation of each quality dimension
 
-## Project Structure
+### Bonus Features (Per Assignment)
+1. **Demand Forecasting (Part B)**: Time-series forecasting for sales data
+2. **Multimodal Image Recognition**: Identify parts from images using vision models
+3. **Enhanced Guardrails**: Toxicity detection, input validation
+4. **Performance Optimization**: Caching, batching, async processing
 
-```
-GearGuide-AI/
-├── README.md # This file
-├── DESIGN.md # Design decisions and methodology
-├── requirements.txt # Python dependencies
-├── catalogue.csv # Product catalogue (600 SKUs)
-├── catalogue.json # Product catalogue (JSON format)
-├── sales_history.csv # Sales data
-├── DATA_README.md # Data documentation
-│
-├── assistant/
-│ ├── __init__.py
-│ ├── retrieval.py # RAG system with FAISS
-│ ├── tools.py # Tool implementations
-│ ├── agent.py # Agent loop and conversation
-│ └── cli.py # Command-line interface
-│
-├── eval/
-│ ├── __init__.py
-│ ├── eval_set.jsonl # Evaluation test cases
-│ ├── run_eval.py # Evaluation runner
-│ └── results.json # Latest evaluation results
-│
-├── ui/
-│   ├── __init__.py
-│   ├── app.py          # Streamlit web interface
-│   └── requirements.txt # UI-specific dependencies
-│
-└── forecasting/
-    ├── __init__.py
-    ├── forecast.py     # Forecasting model (placeholder)
-    ├── baseline.py     # Baseline model (placeholder)
-    └── results.json    # Forecasting results (placeholder)
-```
+## 📚 Documentation
 
-## Compliance Checklist
+- **[DESIGN.md](DESIGN.md)**: Detailed design decisions and methodology
+- **[assignment.md](assignment.md)**: Original assignment requirements
+- **[LLM_MIGRATION_REPORT.md](LLM_MIGRATION_REPORT.md)**: Complete migration report
+
+## 🌟 Compliance Checklist
 
 - [x] **SUB-001**: Code pushed to public GitHub repository
 - [x] **SUB-002**: README and DESIGN.md complete and clear
 - [x] **SUB-003**: The assistant runs
 - [x] **SUB-004**: Eval set and its results are included
-- [ ] **SUB-005**: If attempted, forecasting code and results included (Not attempted - Part B is bonus)
+- [ ] **SUB-005**: Demand forecasting code (Part B - bonus, not attempted)
 - [x] **SUB-006**: No hardcoded API keys or secrets
 
-## Future Enhancements
-
-### Immediate
-1. Add conversation memory for multi-turn context
-2. Add more comprehensive guardrails
-
-### Bonus Features
-1. **Multimodal Image Recognition**: Identify parts from images using vision model
-2. **Part B - Demand Forecasting**: Implement time-series forecasting
-
-## Contact and Questions
+## 📞 Contact
 
 For questions about the implementation, refer to:
 - [DESIGN.md](DESIGN.md) - Design decisions and reasoning
+- [LLM_MIGRATION_REPORT.md](LLM_MIGRATION_REPORT.md) - Migration details
 
 ---
 
-**Project**: GearGuide-AI
-**Last Commit**: Documentation Complete
+**Project**: GearGuide-AI  
+**Architecture**: LLM-First  
+**Last Commit**: LLM Migration Complete

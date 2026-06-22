@@ -37,11 +37,16 @@ env/
 .DS_Store
 Thumbs.db
 
-# Data
-*.csv
-*.json
-
 # Environment
 .env
 .env.local
 .env.*.local
+
+# Data - DO NOT IGNORE (required for evaluation)
+# *.csv
+# *.json
+
+# Allow catalogue and sales data
+!catalogue.csv
+!catalogue.json
+!sales_history.csv

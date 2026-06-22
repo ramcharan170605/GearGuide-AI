@@ -10,14 +10,13 @@ numpy>=1.24.0
 scikit-learn>=1.3.0
 python-dotenv>=1.0.0
 
-# LLM Provider SDKs (install as needed)
-# google-generativeai>=0.3.0  # Google Gemini (recommended)
-# openai>=1.0.0  # OpenAI
-# ollama>=0.1.0  # Ollama (local models)
+# LLM Provider SDKs (required for LLM-first architecture)
+google-generativeai>=0.3.0
+openai>=1.0.0
 
 # Optional: For Part B (Demand Forecasting)
-# statsmodels>=0.14.0  # SARIMAX
-# prophet>=1.1.0  # Facebook Prophet
+# statsmodels>=0.14.0
+# prophet>=1.1.0
 
 # Development
 pytest>=7.4.0
