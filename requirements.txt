@@ -14,6 +14,9 @@ python-dotenv>=1.0.0
 google-generativeai>=0.3.0
 openai>=1.0.0
 
+# UI
+streamlit>=1.28.0
+
 # Optional: For Part B (Demand Forecasting)
 # statsmodels>=0.14.0
 # prophet>=1.1.0

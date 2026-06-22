@@ -9,7 +9,7 @@ The application provides a Streamlit-based web interface for easy interaction wi
 
 ### Launch the UI
 
-After completing the [Setup](#setup) steps:
+After completing the Setup section below:
 
 ```bash
 # Run the Streamlit interface
