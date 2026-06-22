@@ -183,8 +183,8 @@ def _is_off_topic(self, query: str) -> bool:
    - LLM determines if clarification is needed
 
 6. **LLM Provider Layer**
-   - Support GEMINI_API_KEY and OPENAI_API_KEY
-   - Priority: 1. Gemini 2. OpenAI fallback
+   - Support GEMINI_API_KEY, OPENAI_API_KEY, and NVIDIA_API_KEY
+   - Priority: 1. Gemini 2. OpenAI fallback 3. NVIDIA NIM fallback (Gemini → OpenAI → NVIDIA NIM)
    - No hardcoded secrets
 
 ### 3.2 Secondary Objectives
@@ -400,8 +400,10 @@ if tool_call:
 | Create `.env.example` | Created | `.env.example` | ✅ |
 | Support GEMINI_API_KEY | `GeminiProvider` | `llm_provider.py` | ✅ |
 | Support OPENAI_API_KEY | `OpenAIProvider` | `llm_provider.py` | ✅ |
+| Support NVIDIA_API_KEY | `NvidiaNimProvider` | `llm_provider.py` | ✅ |
 | Priority 1: Gemini | `LLMProviderManager` | `llm_provider.py` | ✅ |
-| Priority 2: OpenAI fallback | `get_active_provider()` | `llm_provider.py` | ✅ |
+| Priority 2: OpenAI fallback | `LLMProviderManager` | `llm_provider.py` | ✅ |
+| Priority 3: NVIDIA NIM fallback | `LLMProviderManager` | `llm_provider.py` | ✅ |
 | No hardcoded secrets | Environment variables | `llm_provider.py` | ✅ |
 | Provider abstraction layer | `BaseLLMProvider` | `llm_provider.py` | ✅ |
 

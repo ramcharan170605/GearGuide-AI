@@ -124,13 +124,14 @@ This ensures the system **always works**, even without API keys.
 
 1. **Provider Abstraction**
    - Created `BaseLLMProvider` abstract class
-   - Implemented `GeminiProvider` and `OpenAIProvider`
+   - Implemented `GeminiProvider`, `OpenAIProvider`, and `NvidiaNimProvider`
    - Unified interface for all providers
 
 2. **Priority System**
    - Priority 1: Google Gemini (recommended by VIKMO, free tier)
    - Priority 2: OpenAI (fallback)
-   - Automatic fallback if primary is unavailable
+   - Priority 3: NVIDIA NIM (fallback)
+   - Automatic fallback if primary/secondary are unavailable (Gemini → OpenAI → NVIDIA NIM)
 
 3. **Configuration**
    - Environment variables for API keys (no hardcoding)
