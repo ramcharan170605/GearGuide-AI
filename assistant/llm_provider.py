@@ -4,7 +4,7 @@ LLM Provider Abstraction Layer for GearGuide-AI
 Implements a unified interface for multiple LLM providers (Gemini, OpenAI)
 with automatic fallback and environment-based configuration.
 
-Requirements: LLM-FIRST architecture, provider abstraction
+Priority: 1. Google GenAI (new SDK) 2. OpenAI
 """
 
 import os
@@ -18,15 +18,15 @@ try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
-    pass  # dotenv not installed, will use os.environ directly
+    pass
 
 
 @dataclass
 class LLMConfig:
     """Configuration for LLM providers."""
-    provider: str = "gemini"  # Default to Gemini as per assignment
-    model: str = "gemini-pro"  # Default model
-    temperature: float = 0.0  # Low temperature for deterministic behavior
+    provider: str = "gemini"
+    model: str = "gemini-2.5-flash"
+    temperature: float = 0.0
     max_tokens: int = 4096
     timeout: int = 60
 
@@ -51,115 +51,84 @@ class BaseLLMProvider(ABC):
 
     @abstractmethod
     def __init__(self, config: LLMConfig):
-        """Initialize the provider with configuration."""
         pass
 
     @abstractmethod
     def chat(self, messages: list[Message], tools: Optional[list[dict]] = None) -> LLMReturn:
-        """
-        Send a chat completion request.
-
-        Args:
-            messages: List of chat messages
-            tools: Optional list of tool descriptions for function calling
-
-        Returns:
-            LLMReturn with content, usage, and provider info
-        """
         pass
 
     @abstractmethod
     def is_available(self) -> bool:
-        """Check if this provider is available (API key present, etc.)."""
         pass
 
     @abstractmethod
     def get_name(self) -> str:
-        """Get the provider name."""
         pass
 
 
 class GeminiProvider(BaseLLMProvider):
-    """Google Gemini LLM provider."""
+    """Google GenAI LLM provider (new SDK)."""
 
     def __init__(self, config: LLMConfig):
         self.config = config
         self._client = None
+        self._model = None
         self._initialize_client()
 
     def _initialize_client(self):
-        """Lazily initialize the Gemini client."""
+        """Initialize the GenAI client."""
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            self._client = None
+            return
+
         try:
-            import google.generativeai as genai
-            api_key = os.getenv("GEMINI_API_KEY")
-            if api_key:
-                genai.configure(api_key=api_key)
-                self._client = genai
-            else:
-                self._client = None
+            import google.genai as genai
+            self._client = genai.Client(api_key=api_key)
+            # Model will be resolved at chat time
         except ImportError:
             self._client = None
 
     def is_available(self) -> bool:
-        """Check if Gemini is available."""
         return self._client is not None and os.getenv("GEMINI_API_KEY") is not None
 
     def get_name(self) -> str:
-        """Get provider name."""
         return "gemini"
 
     def chat(self, messages: list[Message], tools: Optional[list[dict]] = None) -> LLMReturn:
-        """
-        Send a chat completion request to Gemini.
-
-        Note: Gemini function calling uses a different format than OpenAI.
-        For now, we'll use text-based tool calling for compatibility.
-        """
         if not self.is_available():
             raise RuntimeError("Gemini provider not available. Check GEMINI_API_KEY.")
 
-        import google.generativeai as genai
+        import google.genai as genai
 
-        # Convert messages to Gemini format
-        gemini_messages = []
+        # Extract user message and system context
+        last_user_message = None
+        system_context = []
         for msg in messages:
-            role = msg.role
-            content = msg.content
+            if msg.role == "user":
+                last_user_message = msg.content
+            elif msg.role == "system":
+                system_context.append(msg.content)
 
-            # Handle system messages (Gemini uses "user" for system in some cases)
-            if role == "system":
-                gemini_messages.append({"role": "user", "parts": [{"text": f"SYSTEM: {content}"}]})
-            elif role == "user":
-                gemini_messages.append({"role": "user", "parts": [{"text": content}]})
-            elif role == "assistant":
-                gemini_messages.append({"role": "model", "parts": [{"text": content}]})
+        if not last_user_message:
+            raise RuntimeError("No user message found in messages")
 
-        # Get the model
-        model = self._client.GenerativeModel(
-            model_name=self.config.model,
-            generation_config={
-                "temperature": self.config.temperature,
-                "max_output_tokens": self.config.max_tokens,
-            }
-        )
+        # Combine system context
+        context_str = "\n".join(system_context)
+        full_prompt = f"{context_str}\n\nUser: {last_user_message}" if context_str else last_user_message
 
-        # Start chat session
-        chat_session = model.start_chat(history=gemini_messages[:-1] if len(gemini_messages) > 1 else [])
-
-        # Send the last message
-        last_message = gemini_messages[-1]
-        response = chat_session.send_message(
-            content=last_message["parts"][0]["text"] if isinstance(last_message, dict) else str(last_message)
-        )
-
-        return LLMReturn(
-            content=response.text,
-            usage={
-                "input_tokens": response.usage_metadata.get("prompt_token_count", 0),
-                "output_tokens": response.usage_metadata.get("candidates_token_count", 0),
-            },
-            provider=self.get_name()
-        )
+        try:
+            response = self._client.models.generate_content(
+                model=self.config.model,
+                contents=[full_prompt]
+            )
+            return LLMReturn(
+                content=response.text,
+                usage={"input_tokens": 0, "output_tokens": 0},
+                provider="gemini"
+            )
+        except Exception as e:
+            raise RuntimeError(f"Gemini API error: {str(e)}")
 
 
 class OpenAIProvider(BaseLLMProvider):
@@ -171,29 +140,25 @@ class OpenAIProvider(BaseLLMProvider):
         self._initialize_client()
 
     def _initialize_client(self):
-        """Lazily initialize the OpenAI client."""
+        """Initialize the OpenAI client."""
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            self._client = None
+            return
+
         try:
             import openai
-            api_key = os.getenv("OPENAI_API_KEY")
-            if api_key:
-                self._client = openai.Client(api_key=api_key)
-            else:
-                self._client = None
+            self._client = openai.Client(api_key=api_key)
         except ImportError:
             self._client = None
 
     def is_available(self) -> bool:
-        """Check if OpenAI is available."""
         return self._client is not None and os.getenv("OPENAI_API_KEY") is not None
 
     def get_name(self) -> str:
-        """Get provider name."""
         return "openai"
 
     def chat(self, messages: list[Message], tools: Optional[list[dict]] = None) -> LLMReturn:
-        """
-        Send a chat completion request to OpenAI.
-        """
         if not self.is_available():
             raise RuntimeError("OpenAI provider not available. Check OPENAI_API_KEY.")
 
@@ -202,52 +167,27 @@ class OpenAIProvider(BaseLLMProvider):
         for msg in messages:
             openai_messages.append({"role": msg.role, "content": msg.content})
 
-        # Add tools if provided
-        kwargs = {
-            "model": self.config.model,
-            "messages": openai_messages,
-            "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens,
-        }
-
-        if tools:
-            kwargs["tools"] = tools
-            kwargs["tool_choice"] = "auto"
-
         try:
-            response = self._client.chat.completions.create(**kwargs)
-
-            # Handle tool calls if present
-            if hasattr(response.choices[0].message, 'tool_calls') and response.choices[0].message.tool_calls:
-                # For now, return the text content
-                content = response.choices[0].message.content or ""
-                return LLMReturn(
-                    content=content,
-                    usage={
-                        "input_tokens": response.usage.prompt_tokens,
-                        "output_tokens": response.usage.completion_tokens,
-                    },
-                    provider=self.get_name()
-                )
-            else:
-                return LLMReturn(
-                    content=response.choices[0].message.content or "",
-                    usage={
-                        "input_tokens": response.usage.prompt_tokens,
-                        "output_tokens": response.usage.completion_tokens,
-                    },
-                    provider=self.get_name()
-                )
+            response = self._client.chat.completions.create(
+                model=self.config.model,
+                messages=openai_messages,
+                temperature=self.config.temperature,
+                max_tokens=self.config.max_tokens,
+            )
+            return LLMReturn(
+                content=response.choices[0].message.content or "",
+                usage={
+                    "input_tokens": response.usage.prompt_tokens,
+                    "output_tokens": response.usage.completion_tokens,
+                },
+                provider="openai"
+            )
         except Exception as e:
             raise RuntimeError(f"OpenAI API error: {str(e)}")
 
 
 class LLMProviderManager:
-    """
-    Manages multiple LLM providers with fallback logic.
-
-    Priority: 1. Gemini 2. OpenAI
-    """
+    """Manages multiple LLM providers with fallback logic."""
 
     def __init__(self, config: Optional[LLMConfig] = None):
         self.config = config or LLMConfig()
@@ -256,7 +196,7 @@ class LLMProviderManager:
 
     def _initialize_providers(self):
         """Initialize all available providers."""
-        # Try Gemini first (priority 1)
+        # Try GenAI first (priority 1)
         try:
             gemini = GeminiProvider(self.config)
             if gemini.is_available():
@@ -273,12 +213,7 @@ class LLMProviderManager:
             pass
 
     def get_active_provider(self) -> Optional[BaseLLMProvider]:
-        """
-        Get the active provider based on priority.
-
-        Priority: 1. Gemini 2. OpenAI
-        """
-        # Prefer Gemini as per assignment recommendation
+        """Get the active provider based on priority."""
         if "gemini" in self._providers:
             return self._providers["gemini"]
         elif "openai" in self._providers:
@@ -286,12 +221,7 @@ class LLMProviderManager:
         return None
 
     def chat(self, messages: list[Message], tools: Optional[list[dict]] = None) -> LLMReturn:
-        """
-        Send a chat completion request using the active provider.
-
-        Raises:
-            RuntimeError: If no provider is available
-        """
+        """Send a chat completion request using the active provider."""
         provider = self.get_active_provider()
         if provider is None:
             raise RuntimeError(
@@ -309,20 +239,12 @@ class LLMProviderManager:
         return len(self._providers) > 0
 
 
-# Global provider manager instance (lazy initialization)
+# Global provider manager instance
 _provider_manager: Optional[LLMProviderManager] = None
 
 
 def get_llm_provider(config: Optional[LLMConfig] = None) -> LLMProviderManager:
-    """
-    Get the global LLM provider manager.
-
-    Args:
-        config: Optional configuration (uses defaults if not provided)
-
-    Returns:
-        LLMProviderManager instance
-    """
+    """Get the global LLM provider manager."""
     global _provider_manager
     if _provider_manager is None:
         _provider_manager = LLMProviderManager(config)
@@ -330,28 +252,6 @@ def get_llm_provider(config: Optional[LLMConfig] = None) -> LLMProviderManager:
 
 
 def reset_llm_provider():
-    """Reset the global LLM provider manager (useful for testing)."""
+    """Reset the global LLM provider manager."""
     global _provider_manager
     _provider_manager = None
-
-
-if __name__ == "__main__":
-    # Test the provider
-    print("Testing LLM Provider Abstraction...")
-
-    manager = get_llm_provider()
-    print(f"Available providers: {manager.list_providers()}")
-
-    if manager.is_available():
-        try:
-            messages = [
-                Message(role="system", content="You are a helpful assistant."),
-                Message(role="user", content="Hello, what is your name?")
-            ]
-            result = manager.chat(messages)
-            print(f"Response from {result.provider}: {result.content[:100]}...")
-            print(f"Usage: {result.usage}")
-        except Exception as e:
-            print(f"Error: {e}")
-    else:
-        print("No LLM provider available. Please set API keys.")
