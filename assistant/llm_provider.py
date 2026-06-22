@@ -370,15 +370,35 @@ class LLMProviderManager:
                 "Please set GEMINI_API_KEY or OPENAI_API_KEY environment variable."
             )
 
+        import logging
+        logger = logging.getLogger("assistant.llm_provider")
+
         last_error = None
         for provider in providers_to_try:
             try:
                 return provider.chat(messages, tools)
             except Exception as e:
                 last_error = e
+                logger.error(f"Provider {provider.get_name()} failed: {e}", exc_info=True)
                 print(f"Provider {provider.get_name()} failed: {e}. Falling back to next available provider...")
 
-        raise RuntimeError(f"All LLM providers failed. Last error: {str(last_error)}")
+        err_msg = str(last_error).lower()
+        if "429" in err_msg or "exhausted" in err_msg or "rate" in err_msg or "quota" in err_msg:
+            # Check if there is a sleep recommendation in the error
+            match = re.search(r"retry in (\d+(?:\.\d+)?)s", err_msg)
+            seconds_msg = f" in {match.group(1)}s" if match else " shortly"
+            
+            match2 = re.search(r"retry in (\d+) seconds", err_msg)
+            if match2:
+                seconds_msg = f" in {match2.group(1)}s"
+                
+            friendly_msg = f"LLM rate or daily quota limit exceeded. Please retry{seconds_msg}."
+        elif "503" in err_msg or "unavailable" in err_msg:
+            friendly_msg = "LLM service is temporarily overloaded or unavailable. Please retry in a few seconds."
+        else:
+            friendly_msg = f"LLM Error: {str(last_error)}"
+
+        raise RuntimeError(friendly_msg)
 
     def list_providers(self) -> list[str]:
         """List available providers."""

@@ -110,8 +110,12 @@ with st.sidebar:
             st.session_state.messages = []
             st.session_state.messages.append({'role': 'user', 'content': query})
             with st.spinner("Processing..."):
-                response = st.session_state.assistant.process_query(query)
-            st.session_state.messages.append({'role': 'assistant', 'content': response})
+                try:
+                    response = st.session_state.assistant.process_query(query)
+                    st.session_state.messages.append({'role': 'assistant', 'content': response})
+                except Exception as e:
+                    error_msg = f"⚠️ **Service Temporary Unavailable**: {str(e)}"
+                    st.session_state.messages.append({'role': 'assistant', 'content': error_msg})
             st.rerun()
 
     st.markdown("---")
@@ -134,6 +138,11 @@ if prompt := st.chat_input('Ask about auto parts...', disabled=not st.session_st
         st.markdown(prompt)
     with st.chat_message('assistant'):
         with st.spinner("Thinking..."):
-            response = st.session_state.assistant.process_query(prompt)
-        st.markdown(response)
-    st.session_state.messages.append({'role': 'assistant', 'content': response})
+            try:
+                response = st.session_state.assistant.process_query(prompt)
+                st.markdown(response)
+                st.session_state.messages.append({'role': 'assistant', 'content': response})
+            except Exception as e:
+                error_msg = f"⚠️ **Service Temporary Unavailable**: {str(e)}"
+                st.markdown(error_msg)
+                st.session_state.messages.append({'role': 'assistant', 'content': error_msg})
